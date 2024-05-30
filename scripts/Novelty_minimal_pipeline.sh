@@ -16,7 +16,7 @@ export ANCHOR=/nfs3_ib/nfs-ip34
 export MAG_DIR=$ILAFORES/analysis/boreal_moss/MAG_analysis/drep_genomes/dereplicated_genomes
 
 # Setup project directories
-mkdir -p ${MAIN}/out/checkm2 ${MAIN}/sourmash/sketches ${MAIN}/plots ${MAIN}/logs
+mkdir -p ${MAIN}/out/checkm2 ${MAIN}/sourmash/sketches/nMAGs ${MAIN}/plots ${MAIN}/logs
 cd $MAIN
 find ${MAG_DIR} -type f -name '*.fa' > out/MAG_list.txt
 
@@ -80,12 +80,20 @@ export SOURMASH="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES}
 # Sketch novel genomes 
 $SOURMASH sketch dna -p scaled=1000,k=31,abund \
 	--name-from-first --from-file out/nMAG_list.txt \
-	--output-dir sourmash/sketches
+	--output-dir sourmash/sketches/nMAGs
 # if it fails, check if there are empty returns at the end of nMAG_list.txt
 #### Eventually, use 'branchwater multisketch'
 
+#Fix names for novel genomes 
+mkdir moss_MAGs_renamed/
+for file in $(find sourmash/sketches/nMAGs -type f -name '*.sig'); do
+	new_name=$(basename $file)
+	$SOURMASH sig rename $file "${new_name%.fa.sig}" -o sourmash/sketches/nMAGs/${new_name}
+done
+
+
 # Create an index 
-$SOURMASH index sourmash/sketches/nMAGs_index sourmash/sketches/*.sig
+$SOURMASH index sourmash/sketches/nMAGs_index sourmash/sketches/nMAGs/*.sig
 export MAGs_IDX=$(find ${MAIN}/sourmash/sketches -type f -name 'nMAGs_index*')
 
 # Gather metagenomes
@@ -95,7 +103,7 @@ sbatch --array=1-4 \
 	$PWD/scripts/gather_SLURM.sh
 
 #####################
-### parse_sourmash.R
+### community_abundance.R
 #####################
 
 
