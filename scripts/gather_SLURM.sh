@@ -15,6 +15,7 @@ export ILAFORES=${ANCHOR}/${ILAFORES}
 export MAIN=${ANCHOR}/${MAIN}
 export SM_DB=${ANCHOR}/${DB}/sourmash_db/gtdb-rs214-reps.k31.zip
 export MAGs_IDX=${ANCHOR}/${MAGs_IDX}
+export SAMPLE_DIR=${ANCHOR}/${SAMPLE_DIR}
 export sourmash="singularity exec --writable-tmpfs -e -B ${ANCHOR}/home:${ANCHOR}/home ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif sourmash"
 echo "$sourmash"
 echo "loading env"

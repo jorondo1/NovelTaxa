@@ -11,6 +11,7 @@ export SKANI=${ILAFORES}/programs/skani/skani
 export GTDB_SKANI=${DB}/GTDB/gtdb_skani_database_ani
 export GTDB_VERSION=gtdb_genomes_reps_r214
 export ANCHOR=/nfs3_ib/nfs-ip34
+export SINGULARITY="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES} ${ILL_PIPELINES}/containers"
 
 # Directory containing MAGs: 
 export MAG_DIR=$ILAFORES/analysis/boreal_moss/MAG_analysis/drep_genomes/dereplicated_genomes
@@ -28,8 +29,7 @@ find ${MAG_DIR} -type f -name '*.fa' > out/MAG_list.txt
 if [[ -f out/checkm2/quality_report.tsv ]]; then
 	module load apptainer
 	
-	singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES} \
-		${ILL_PIPELINES}/containers/checkm2.1.0.2.sif \
+	"$SINGULARITY"/checkm2.1.0.2.sif \
 		checkm2 predict --threads 48 \
 		--database_path ${DB}/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd \
 		--input ${MAG_DIR} --extension .fa --output-directory ${MAIN}/out/checkm2
@@ -75,8 +75,13 @@ python3 scripts/novel_MAGs.py
 ### gather_SLURM.sh
 #####################
 
+export SOURMASH="${SINGULARITY}/sourmash.4.7.0.sif sourmash"
+export SAMPLE_DIR=${ILAFORES}/analysis/boreal_moss/preproc
+export MAGs_IDX=$(find ${MAIN}/sourmash/sketches -type f -name 'nMAGs_index*')
+export N_SAM=$(wc ${SAMPLE_DIR}/clean_samples.tsv | awk '{print $1}')
+
 ml apptainer
-export SOURMASH="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES} ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif sourmash"
+
 # Sketch novel genomes 
 $SOURMASH sketch dna -p scaled=1000,k=31,abund \
 	--name-from-first --from-file out/nMAG_list.txt \
@@ -91,16 +96,20 @@ for file in $(find sourmash/sketches/nMAGs -type f -name '*.sig'); do
 	$SOURMASH sig rename $file "${new_name%.fa.sig}" -o sourmash/sketches/nMAGs/${new_name}
 done
 
-
 # Create an index 
 $SOURMASH index sourmash/sketches/nMAGs_index sourmash/sketches/nMAGs/*.sig
-export MAGs_IDX=$(find ${MAIN}/sourmash/sketches -type f -name 'nMAGs_index*')
 
 # Gather metagenomes
-sbatch --array=1-4 \
-	--export=ANCHOR,ILAFORES,DB,MAIN,MAGs_IDX,\
-	SAMPLE_DIR=${ANCHOR}${ILAFORES}/analysis/boreal_moss/preproc \
+sbatch --array=1-"${N_SAM}" \
+	--export=ANCHOR,ILAFORES,DB,MAIN,MAGs_IDX,SAMPLE_DIR \
 	$PWD/scripts/gather_SLURM.sh
+
+wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh
+source myFunctions.sh; rm myFunctions.sh
+
+fix_gtdb data/sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
+eval_cont data/sourmash
+
 
 #####################
 ### community_abundance.R
