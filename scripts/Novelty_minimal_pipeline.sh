@@ -104,6 +104,16 @@ sbatch --array=1-"${N_SAM}" \
 	--export=ANCHOR,ILAFORES,DB,MAIN,MAGs_IDX,SAMPLE_DIR \
 	$PWD/scripts/gather_SLURM.sh
 
+sleep 600
+
+while true; do 
+	num_csv=$(find $MAIN/sourmash -type f -name '*gather.csv' | wc | awk '{print $1}')
+	if [[  -ge "$((2 * N_SAM))" ]]; then
+		break
+	fi
+	sleep 60
+done
+
 wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh
 source myFunctions.sh; rm myFunctions.sh
 
