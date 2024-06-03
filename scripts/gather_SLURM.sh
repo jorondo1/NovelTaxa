@@ -1,8 +1,8 @@
 #!/bin/bash -l
 
 #SBATCH --mail-type=END,FAIL
-#SBATCH -D /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelSpecies
-#SBATCH -o /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelSpecies/logs/sourmash-%A_%a.slurm.out
+#SBATCH -D /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelSpecies/Moss_test
+#SBATCH -o /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelSpecies/Moss_test/sourmash/logs/sourmash-%A_%a.slurm.out
 #SBATCH --time=24:00:00
 #SBATCH --mem=15G
 #SBATCH -N 1
@@ -12,7 +12,7 @@
 
 newgrp def-ilafores
 export ILAFORES=${ANCHOR}/${ILAFORES}
-export MAIN=${ANCHOR}/${MAIN}
+export OUTDIR=${ANCHOR}/${OUTDIR}
 export SM_DB=${ANCHOR}/${DB}/sourmash_db/gtdb-rs214-reps.k31.zip
 export MAGs_IDX=${ANCHOR}/${MAGs_IDX}
 export SAMPLE_DIR=${ANCHOR}/${SAMPLE_DIR}
@@ -27,7 +27,7 @@ module load StdEnv/2020 apptainer/1.1.5
 # Define sample
 export SAMPLE_NUM=$(cat ${SAMPLE_DIR}/clean_samples.tsv | awk "NR==$SLURM_ARRAY_TASK_ID")
 export SAMPLE=$(echo -e "$SAMPLE_NUM" | cut -f1)
-export SIG="$MAIN/sourmash/sketches/${SAMPLE}.sig"
+export SIG="${OUTDIR}/sourmash/sketches/${SAMPLE}.sig"
 export FQ_DIR=${SAMPLE_DIR}/${SAMPLE}
 
 echo "Executing pipeline on sample ${SAMPLE} !"
@@ -41,16 +41,16 @@ else
 	echo "Metagenome sketches found. Skipping..."
 fi
 
-if [[ ! -f $MAIN/sourmash/${SAMPLE}_rs214_gather.csv ]]; then
+if [[ ! -f ${OUTDIR}/sourmash/${SAMPLE}_${$GTDB_V}_gather.csv ]]; then
 	echo "Gather against the gtdb index"
-	$sourmash gather $SIG ${SM_DB} -o $MAIN/sourmash/${SAMPLE}_rs214_gather.csv
+	$sourmash gather $SIG ${SM_DB} -o ${OUTDIR}/sourmash/${SAMPLE}_{$GTDB_V}_gather.csv
 else
 	echo "Gather output found. Skipping..."
 fi
 
-if [[ ! -f $MAIN/sourmash/${SAMPLE}_custom_gather.csv ]]; then
+if [[ ! -f ${OUTDIR}/sourmash/${SAMPLE}_custom_gather.csv ]]; then
 	echo "Gather again but add the novel MAGs"
-	$sourmash gather $SIG ${MAGs_IDX} ${SM_DB} -o $MAIN/sourmash/${SAMPLE}_custom_gather.csv
+	$sourmash gather $SIG ${MAGs_IDX} ${SM_DB} -o ${OUTDIR}/sourmash/${SAMPLE}_custom_gather.csv
 else
 	echo "Gather output found. Skipping"
 fi
