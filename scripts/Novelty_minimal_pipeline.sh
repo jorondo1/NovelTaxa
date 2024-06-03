@@ -62,7 +62,7 @@ if [[ ! -d $GTDB_SKANI ]] && [[ ! -d ${DB}/GTDB/gtdb_genomes_reps_${GTDB_V} ]]; 
 fi
 
 # Setup project directories
-mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2
+mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2 ${OUTDIR}/sourmash
 
 # gather output post-processing
 if [[ ! -f scripts/myFunctions.sh ]]; then
@@ -127,7 +127,7 @@ python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt \
 	-m tmp/MAG_list.txt -c output/quality_report.tsv -o tmp
 
 #####################
-### gather_SLURM.sh
+### Sketch & index nMAGs
 #####################
 
 ml apptainer
@@ -167,10 +167,16 @@ if [[ ! -f ${SM_SK}/nMAGs_index.sbt.zip ]]; then
 else echo 'nMAGs index found. Skipping.'
 fi
 
+
+
 module unload apptainer
 
+#####################
+### Gather Metagenomes
+#####################
+
 # Gather metagenomes ; savec jobID
-jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAMPLE_DIR,GTDB_V \
+jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAMPLE_DIR,GTDB_V,SM_SK \
 	$MAIN/scripts/gather_SLURM.sh | awk '{print $4}'); echo "Submitted job array with Job ID: $jobID"
 sleep 6
 
@@ -182,6 +188,7 @@ while true; do
 
     if [ $job_status -eq 0 ]; then
         echo "Job $jobID is still running."
+		sleep 30
     else
         echo "Job $jobID has finished."
 		num_csv=$(find tmp/sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
@@ -193,13 +200,13 @@ while true; do
 			redo=$(grep -vnf <(find tmp/sourmash/ -type f -name '*gather.csv' -print0 | xargs -0 -I {} basename {} | sed 's/_.*//' | sort -u) ${SAMPLE_DIR}/clean_samples.tsv| cut -d':' -f1 |  paste -sd,)
 			# TBC
 		fi
+		break
     fi
-    sleep 30
 done
 
 echo "Summarising containment"
-fix_gtdb tmp/sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
-eval_cont tmp/sourmash output # compute sample containment and show overall stats
+fix_gtdb sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
+eval_cont sourmash # compute sample containment and show overall stats
 
 echo "Done !"
 #####################

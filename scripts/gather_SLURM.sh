@@ -12,10 +12,11 @@
 
 newgrp def-ilafores
 export ILAFORES=${ANCHOR}/${ILAFORES}
-export OUTDIR=${ANCHOR}/${OUTDIR}
-export SM_DB=${ANCHOR}/${DB}/sourmash_db/gtdb-rs214-reps.k31.zip
+export OUTDIR=${ANCHOR}/${OUTDIR}/sourmash
+export SM_DB=${ANCHOR}/${DB}/sourmash_db/gtdb-rs214-reps.k31.zip #atm hardcoded because not produced locally
 export MAGs_IDX=${ANCHOR}/${MAGs_IDX}
 export SAMPLE_DIR=${ANCHOR}/${SAMPLE_DIR}
+export SM_SK=${ANCHOR}/${SM_SK}
 export sourmash="singularity exec --writable-tmpfs -e -B ${ANCHOR}/home:${ANCHOR}/home ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif sourmash"
 echo "$sourmash"
 echo "loading env"
@@ -27,7 +28,7 @@ module load StdEnv/2020 apptainer/1.1.5
 # Define sample
 export SAMPLE_NUM=$(cat ${SAMPLE_DIR}/clean_samples.tsv | awk "NR==$SLURM_ARRAY_TASK_ID")
 export SAMPLE=$(echo -e "$SAMPLE_NUM" | cut -f1)
-export SIG="${OUTDIR}/sourmash/sketches/${SAMPLE}.sig"
+export SIG="${SM_SK}/${SAMPLE}.sig"
 export FQ_DIR=${SAMPLE_DIR}/${SAMPLE}
 
 echo "Executing pipeline on sample ${SAMPLE} !"
@@ -41,7 +42,7 @@ else
 	echo "Metagenome sketches found. Skipping..."
 fi
 
-if [[ ! -f ${OUTDIR}/sourmash/${SAMPLE}_${$GTDB_V}_gather.csv ]]; then
+if [[ ! -f ${OUTDIR}/sourmash/${SAMPLE}_${GTDB_V}_gather.csv ]]; then
 	echo "Gather against the gtdb index"
 	$sourmash gather $SIG ${SM_DB} -o ${OUTDIR}/sourmash/${SAMPLE}_{$GTDB_V}_gather.csv
 else
