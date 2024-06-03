@@ -65,9 +65,10 @@ fi
 mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2 ${OUTDIR}/sourmash
 
 # gather output post-processing
-if [[ ! -f scripts/myFunctions.sh ]]; then
-	wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh -P scripts/
+if [[ -f scripts/myFunctions.sh ]]; then
+	rm scripts/myFunctions.sh
 fi
+wget -q https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh -P scripts/
 source scripts/myFunctions.sh
 
 cd $OUTDIR
@@ -188,12 +189,12 @@ while true; do
 		sleep 30
     else
         echo "Job $jobID has finished."
-		num_csv=$(find tmp/sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
+		num_csv=$(find sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
 		# We expect two gather files per sample (default db + custom db)
 		if [[ ${num_csv} -ge "$((2 * ${N_SAM}))" ]]; then
 			echo "All "${num_csv}" expected output files have been produced."
 		else 
-			echo 'Some output files are missing ("${num_csv}" found, "$((2 * ${N_SAM}))" expected.)'
+			echo "Some output files are missing (${num_csv} found, $((2 * ${N_SAM})) expected.)"
 			redo=$(grep -vnf <(find tmp/sourmash/ -type f -name '*gather.csv' -print0 | xargs -0 -I {} basename {} | sed 's/_.*//' | sort -u) ${SAMPLE_DIR}/clean_samples.tsv| cut -d':' -f1 |  paste -sd,)
 			# TBC
 		fi
