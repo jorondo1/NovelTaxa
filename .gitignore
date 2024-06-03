@@ -1,4 +1,6 @@
 doc/
 *.fa
-*Rproj*
 *data
+.RData
+.Rhistory
+
