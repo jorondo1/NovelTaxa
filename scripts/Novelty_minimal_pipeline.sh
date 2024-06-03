@@ -172,7 +172,7 @@ module unload apptainer
 # Gather metagenomes ; savec jobID
 jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAMPLE_DIR,GTDB_V \
 	$MAIN/scripts/gather_SLURM.sh | awk '{print $4}'); echo "Submitted job array with Job ID: $jobID"
-sleep 600
+sleep 6
 
 # Periodically check if the job is still running, then whether all expected output files are there
 while true; do
