@@ -172,7 +172,7 @@ module unload apptainer
 #####################
 ### Gather Metagenomes
 #####################
-echo $GTDB_Z
+echo $GTDB_V
 exit 1
 # Gather metagenomes ; savec jobID
 jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAMPLE_DIR,GTDB_V,SM_SK \
