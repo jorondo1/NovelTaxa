@@ -159,10 +159,12 @@ for file in $(find ${SM_SK}/nMAGs -type f -name '*.sig'); do
 	$SOURMASH sig rename $file "${new_name%.fa.sig}" -o ${SM_SK}/nMAGs/${new_name}
 done
 fi
-exit 1
+
 # Create an index 
-echo 'Create index for genome sketches...'
-$SOURMASH index ${SM_SK}/nMAGs_index ${SM_SK}/nMAGs/*.sig
+if [[ ! -f ${SM_SK}/nMAGs_index.sbt.zip ]]; then
+	echo 'Create index for genome sketches...'
+	$SOURMASH index ${SM_SK}/nMAGs_index ${SM_SK}/nMAGs/*.sig
+else echo 'nMAGs index found. Skipping.'
 module unload apptainer
 
 # Gather metagenomes ; savec jobID
