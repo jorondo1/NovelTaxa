@@ -65,7 +65,9 @@ fi
 mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2
 
 # gather output post-processing
-wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh -P scripts/
+if [[ -f scripts/myFunctions.sh ]]; then
+	wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh -P scripts/
+fi
 source scripts/myFunctions.sh
 
 cd $OUTDIR
@@ -76,8 +78,8 @@ find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
 #####################
 ### CHECKM
 #####################
-Exit 1
-# Singularit
+
+# Singularity
 if [[ -f ${OUTDIR}/tmp/checkm2/quality_report.tsv ]]; then
 	echo "Running checkm!"
 	module load apptainer
