@@ -172,8 +172,6 @@ module unload apptainer
 #####################
 ### Gather Metagenomes
 #####################
-echo $GTDB_V
-exit 1
 # Gather metagenomes ; savec jobID
 jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAMPLE_DIR,GTDB_V,SM_SK \
 	$MAIN/scripts/gather_SLURM.sh | awk '{print $4}'); echo "Submitted job array with Job ID: $jobID"
