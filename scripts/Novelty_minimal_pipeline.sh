@@ -43,7 +43,6 @@ if [[ ! -f ${PWD}/scripts/novel_MAGs.py ]]; then
 	Usage
 fi
 
-exit 1
 export MAIN=${PWD}
 export ILAFORES=/home/def-ilafores
 export ILL_PIPELINES=${ILAFORES}/programs/ILL_pipelines/containers
