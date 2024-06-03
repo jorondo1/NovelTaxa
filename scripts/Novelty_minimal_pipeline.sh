@@ -109,7 +109,7 @@ else echo 'Genome sketch found! Skipping.'
 fi 
 
 # Compute ANI
-if [[ ! -f out/ANI_results.txt ]]; then
+if [[ ! -f output/ANI_results.txt ]]; then
 	echo 'Calculate ANI using skANI...'
 	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t 72 --ql tmp/MAG_list.txt 
 	# Format output: 
@@ -125,7 +125,7 @@ fi
 echo 'Identifying novel MAGs...'
 python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt \
 	-m tmp/MAG_list.txt -c output/quality_report.tsv -o tmp
-
+exit 1
 #####################
 ### gather_SLURM.sh
 #####################
