@@ -76,16 +76,16 @@ find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
 #####################
 ### CHECKM
 #####################
-
+Exit 1
 # Singularit
 if [[ -f ${OUTDIR}/tmp/checkm2/quality_report.tsv ]]; then
 	echo "Running checkm!"
 	module load apptainer
 	
 	"$SINGULARITY"/checkm2.1.0.2.sif \
-		checkm2 predict --threads 48 \
-		--database_path ${DB}/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd \
-		--input ${MAG_DIR} --extension .fa --output-directory ${OUTDIR}/tmp/checkm2
+	checkm2 predict --threads 48 \
+	--database_path ${DB}/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd \
+	--input ${MAG_DIR} --extension .fa --output-directory ${OUTDIR}/tmp/checkm2
 
 	module unload apptainer
 	cp tmp/checkm2/quality_report.tsv output/
