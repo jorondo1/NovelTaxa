@@ -3,4 +3,4 @@ doc/
 *data
 .RData
 .Rhistory
-
+*.Rproj*
