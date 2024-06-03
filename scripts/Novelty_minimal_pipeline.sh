@@ -55,6 +55,9 @@ export SKANI=${ILAFORES}/programs/skani/skani
 export GTDB_SKANI=${DB}/GTDB/gtdb_skani_${GTDB_V}
 export ANCHOR=/nfs3_ib/nfs-ip34
 export SINGULARITY="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES} ${ILL_PIPELINES}/containers"
+export SOURMASH="${SINGULARITY}/sourmash.4.7.0.sif sourmash"
+export MAGs_IDX=$(find ${OUTDIR}/sourmash/sketches -type f -name 'nMAGs_index*')
+export N_SAM=$(wc ${SAMPLE_DIR}/clean_samples.tsv | awk '{print $1}')
 
 # Setup project directories
 mkdir -p scripts ${OUTDIR}/checkm2 ${OUTDIR}/sourmash/sketches/nMAGs ${OUTDIR}/output ${OUTDIR}/logs ${OUTDIR}/tmp
@@ -74,6 +77,7 @@ find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
 
 # Singularity
 if [[ -f ${OUTDIR}/checkm2/quality_report.tsv ]]; then
+	echo "Running checkm!"
 	module load apptainer
 	
 	"$SINGULARITY"/checkm2.1.0.2.sif \
@@ -82,6 +86,7 @@ if [[ -f ${OUTDIR}/checkm2/quality_report.tsv ]]; then
 		--input ${MAG_DIR} --extension .fa --output-directory ${OUTDIR}/checkm2
 
 	module unload apptainer
+else echo 'checkM output found! Skipping.'
 fi
 
 #####################
@@ -90,50 +95,54 @@ fi
 
 # Sketch GTDB genomes if required:
 if [[ ! -d ${GTDB_SKANI} ]]; then
+	echo 'sketching GTDB reference genomes...'
 	cd ${DB}/GTDB
 	find gtdb_genomes_reps_${GTDB_V}/ -name '*.fna.gz' > gtdb_files_${GTDB_V}.txt
 	${SKANI} sketch -l gtdb_files_${GTDB_V}.txt -o ${GTDB_SKANI} -t 72
 	cd $OUTDIR
+else echo 'Genome sketch found! Skipping.'
 fi 
 
 # Compute ANI
 if [[ ! -f out/ANI_results.txt ]]; then
+	echo 'Calculate ANI using skANI...'
 	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t 72 --ql $OUTDIR/tmp/MAG_list.txt 
 	# Format output: 
 	cat tmp/ANI_results_raw.txt | sed -e "s|${MAG_DIR}/||g" -e "s|${GTDB_SKANI}/database/GC./.../.../.../||g" \
 	-e "s/_genomic.fna.gz//g" | awk 'BEGIN {FS=OFS="\t"} {gsub(".fa", "", $2); print}' > output/ANI_results.txt
+else echo 'skANI results found! Skipping.'
 fi
 
 #####################
 ### identify_novel_MAGs.py
 #####################
 
+echo 'Identifying novel MAGs...'
 python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt -m tmp/MAG_list.txt -c checkm2/quality_report.tsv
 
 #####################
 ### gather_SLURM.sh
 #####################
 
-export SOURMASH="${SINGULARITY}/sourmash.4.7.0.sif sourmash"
-export MAGs_IDX=$(find ${OUTDIR}/sourmash/sketches -type f -name 'nMAGs_index*')
-export N_SAM=$(wc ${SAMPLE_DIR}/clean_samples.tsv | awk '{print $1}')
-
 ml apptainer
 # Sketch novel genomes 
+echo 'Sketching novel genomes...'
 $SOURMASH sketch dna -p scaled=1000,k=31,abund \
-	--name-from-first --from-file out/nMAG_list.txt \
+	--name-from-first --from-file tmp/nMAG_list.txt \
 	--output-dir sourmash/sketches/nMAGs
 # if it fails, check if there are empty returns at the end of nMAG_list.txt
 #### Eventually, use 'branchwater multisketch'
 
-#Fix names for novel genomes 
-mkdir moss_MAGs_renamed/
+# Rename novel genomes signatures (otherwise the whole name of the first contig is used) 
+
+echo 'Renaming genome sketches...'
 for file in $(find sourmash/sketches/nMAGs -type f -name '*.sig'); do
 	new_name=$(basename $file)
 	$SOURMASH sig rename $file "${new_name%.fa.sig}" -o sourmash/sketches/nMAGs/${new_name}
 done
 
 # Create an index 
+echo 'Create index for genome sketches...'
 $SOURMASH index sourmash/sketches/nMAGs_index sourmash/sketches/nMAGs/*.sig
 module unload apptainer
 
@@ -165,19 +174,19 @@ while true; do
     sleep 30
 done
 
-fix_gtdb data/sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
-eval_cont data/sourmash # compute sample containment and show overall stats
+fix_gtdb sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
+eval_cont sourmash # compute sample containment and show overall stats
 
 #####################
 ### community_abundance.R
 #####################
 
+# Rscript my_script.R "${GTDB_V}"
+
 # Containment plot
 # Diversity plot
 
 # Produce test stats ?? or just annotate diversity plots
-
-
 
 
 
