@@ -41,6 +41,7 @@ $sourmash sketch dna -p k=31,scaled=1000,abund --merge ${SAMPLE} -o $SIG \
 else
 	echo "Metagenome sketches found. Skipping..."
 fi
+echo $OUTDIR
 
 if [[ ! -f ${OUTDIR}/sourmash/${SAMPLE}_${GTDB_V}_gather.csv ]]; then
 	echo "Gather against the gtdb index"
