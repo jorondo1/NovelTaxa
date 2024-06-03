@@ -78,7 +78,7 @@ find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
 #####################
 
 # Singularity
-if [[ -f ${OUTDIR}/tmp/checkm2/quality_report.tsv ]]; then
+if [[ ! -f ${OUTDIR}/tmp/checkm2/quality_report.tsv ]]; then
 	echo "Running checkm!"
 	module load apptainer
 	
