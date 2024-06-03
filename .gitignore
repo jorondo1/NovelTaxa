@@ -1,6 +1,8 @@
+bak/
 doc/
 *.fa
-*data
+sourmash/
 .RData
 .Rhistory
 *.Rproj*
+.Rproj.user
