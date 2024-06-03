@@ -5,5 +5,5 @@ doc/
 sourmash/
 .RData
 .Rhistory
-*.Rproj*
+*.Rproj
 .Rproj.user
