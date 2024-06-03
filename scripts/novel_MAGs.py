@@ -13,6 +13,7 @@ def main():
     parser.add_argument('-a', '--ANI_results', type=str, required=True, help='File containing skANI results.', default='output/ANI_results.txt')
     parser.add_argument('-m', '--MAG_list', type=str, help='File with with full path to MAGs (one per lines)', default='tmp/MAG_list.txt')
     parser.add_argument('-c', '--checkm', type=str, help='Checkm quality report.', default='checkm2/quality_report.tsv')
+    parser.add_argument('-o', '--outdir', type=str, help='output directory')
 
     # Parse the arguments
     args = parser.parse_args()
@@ -42,7 +43,7 @@ def main():
 
     # Filter paths 
     nMAGs = MAGs[MAGs[0].apply(lambda x: any(s in x for s in intersect))]
-    nMAGs.to_csv('tmp/nMAG_list.txt', index=False, header = False)
+    nMAGs.to_csv(f"{args.outdir}/nMAG_list.txt"), index=False, header = False)
 
 # Ensure function call only when script is run directly, not loaded as a module.
 if __name__ == "__main__":

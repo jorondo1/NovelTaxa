@@ -50,17 +50,18 @@ fi
 export MAIN=${PWD}
 export ILAFORES=/home/def-ilafores
 export ILL_PIPELINES=${ILAFORES}/programs/ILL_pipelines/containers
+export SINGULARITY="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES} ${ILL_PIPELINES}/containers"
+export SOURMASH="${SINGULARITY}/sourmash.4.7.0.sif sourmash"
 export DB=${ILAFORES}/ref_dbs
+export SM_SK=$OUTDIR/tmp/sourmash/sketches
+export MAGs_IDX=$(find ${SM_SK} -type f -name 'nMAGs_index*')
 export SKANI=${ILAFORES}/programs/skani/skani
 export GTDB_SKANI=${DB}/GTDB/gtdb_skani_${GTDB_V}
 export ANCHOR=/nfs3_ib/nfs-ip34
-export SINGULARITY="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES} ${ILL_PIPELINES}/containers"
-export SOURMASH="${SINGULARITY}/sourmash.4.7.0.sif sourmash"
-export MAGs_IDX=$(find ${OUTDIR}/sourmash/sketches -type f -name 'nMAGs_index*')
 export N_SAM=$(wc ${SAMPLE_DIR}/clean_samples.tsv | awk '{print $1}')
 
 # Setup project directories
-mkdir -p scripts ${OUTDIR}/checkm2 ${OUTDIR}/sourmash/sketches/nMAGs ${OUTDIR}/output ${OUTDIR}/logs ${OUTDIR}/tmp
+mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/logs ${OUTDIR}/tmp/checkm2
 
 # gather output post-processing
 wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh -P scripts/
@@ -75,17 +76,18 @@ find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
 ### CHECKM
 #####################
 
-# Singularity
-if [[ -f ${OUTDIR}/checkm2/quality_report.tsv ]]; then
+# Singularit
+if [[ -f ${OUTDIR}/tmp/checkm2/quality_report.tsv ]]; then
 	echo "Running checkm!"
 	module load apptainer
 	
 	"$SINGULARITY"/checkm2.1.0.2.sif \
 		checkm2 predict --threads 48 \
 		--database_path ${DB}/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd \
-		--input ${MAG_DIR} --extension .fa --output-directory ${OUTDIR}/checkm2
+		--input ${MAG_DIR} --extension .fa --output-directory ${OUTDIR}/tmp/checkm2
 
 	module unload apptainer
+	cp tmp/checkm2/quality_report.tsv output/
 else echo 'checkM output found! Skipping.'
 fi
 
@@ -106,7 +108,7 @@ fi
 # Compute ANI
 if [[ ! -f out/ANI_results.txt ]]; then
 	echo 'Calculate ANI using skANI...'
-	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t 72 --ql $OUTDIR/tmp/MAG_list.txt 
+	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t 72 --ql tmp/MAG_list.txt 
 	# Format output: 
 	cat tmp/ANI_results_raw.txt | sed -e "s|${MAG_DIR}/||g" -e "s|${GTDB_SKANI}/database/GC./.../.../.../||g" \
 	-e "s/_genomic.fna.gz//g" | awk 'BEGIN {FS=OFS="\t"} {gsub(".fa", "", $2); print}' > output/ANI_results.txt
@@ -118,32 +120,46 @@ fi
 #####################
 
 echo 'Identifying novel MAGs...'
-python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt -m tmp/MAG_list.txt -c checkm2/quality_report.tsv
+python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt \
+	-m tmp/MAG_list.txt -c output/quality_report.tsv -o tmp
 
 #####################
 ### gather_SLURM.sh
 #####################
 
 ml apptainer
+
+# Check if all MAGs have a signature sketched
+missing_sig=()
+while IFS= read -r fa; do 
+	if [ -e "$(basename ${fa}).sig" ]; then 
+	missing_sig+=("$fa")
+	fi
+done < tmp/nMAG_list.txt
+
 # Sketch novel genomes 
-echo 'Sketching novel genomes...'
-$SOURMASH sketch dna -p scaled=1000,k=31,abund \
+
+if [ ${#missing_sig[@]} -eq 0 ]; then
+	echo 'All MAGs have been sketched. Skipping.'
+else
+	echo 'Sketching novel genomes...'
+	$SOURMASH sketch dna -p scaled=1000,k=31,abund \
 	--name-from-first --from-file tmp/nMAG_list.txt \
-	--output-dir sourmash/sketches/nMAGs
+	--output-dir ${SM_SK}/nMAGs
 # if it fails, check if there are empty returns at the end of nMAG_list.txt
 #### Eventually, use 'branchwater multisketch'
 
 # Rename novel genomes signatures (otherwise the whole name of the first contig is used) 
-
 echo 'Renaming genome sketches...'
-for file in $(find sourmash/sketches/nMAGs -type f -name '*.sig'); do
+for file in $(find ${SM_SK}/nMAGs -type f -name '*.sig'); do
 	new_name=$(basename $file)
-	$SOURMASH sig rename $file "${new_name%.fa.sig}" -o sourmash/sketches/nMAGs/${new_name}
+	$SOURMASH sig rename $file "${new_name%.fa.sig}" -o ${SM_SK}/nMAGs/${new_name}
 done
+fi
 
 # Create an index 
 echo 'Create index for genome sketches...'
-$SOURMASH index sourmash/sketches/nMAGs_index sourmash/sketches/nMAGs/*.sig
+$SOURMASH index ${SM_SK}/nMAGs_index ${SM_SK}/nMAGs/*.sig
 module unload apptainer
 
 # Gather metagenomes ; savec jobID
@@ -161,21 +177,21 @@ while true; do
         echo "Job $jobID is still running."
     else
         echo "Job $jobID has finished."
-		num_csv=$(find sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
+		num_csv=$(find tmp/sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
 		# We expect two gather files per sample (default db + custom db)
 		if [[ ${num_csv} -ge "$((2 * ${N_SAM}))" ]]; then
 			echo "All "${num_csv}" expected output files have been produced."
 		else 
 			echo 'Some output files are missing ("${num_csv}" found, "$((2 * ${N_SAM}))" expected.)'
-			redo=$(grep -vnf <(find sourmash/ -type f -name '*gather.csv' -print0 | xargs -0 -I {} basename {} | sed 's/_.*//' | sort -u) ${SAMPLE_DIR}/clean_samples.tsv| cut -d':' -f1 |  paste -sd,)
+			redo=$(grep -vnf <(find tmp/sourmash/ -type f -name '*gather.csv' -print0 | xargs -0 -I {} basename {} | sed 's/_.*//' | sort -u) ${SAMPLE_DIR}/clean_samples.tsv| cut -d':' -f1 |  paste -sd,)
 			# TBC
 		fi
     fi
     sleep 30
 done
 
-fix_gtdb sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
-eval_cont sourmash # compute sample containment and show overall stats
+fix_gtdb tmp/sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
+eval_cont tmp/sourmash # compute sample containment and show overall stats
 
 #####################
 ### community_abundance.R
