@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
+message="Identify novel species-level MAGs and leverage them for community composition estimation."
+echo "message"
 
 #####################
 ### PARSING OPTIONS
 #####################
 function Usage {
-    echo "Identify novel species-level MAGs and leverage them for community composition estimation."
+    echo "$message"
 	echo "Current directory should include scripts/novel_MAGs.py."
 	echo "Assumes the GTDB reference genomes are under /home/def-ilafores/ref_dbs/GTDB/gtdb_genomes_reps_*"
 	echo "Options:"
@@ -91,7 +93,6 @@ $SINGULARITY/checkm2.1.0.2.sif \
 	cp tmp/checkm2/quality_report.tsv output/
 else echo 'checkM output found! Skipping.'
 fi
-exit 1
 
 #####################
 ### skANI
