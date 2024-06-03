@@ -173,10 +173,18 @@ module unload apptainer
 #####################
 ### Gather Metagenomes
 #####################
-# Gather metagenomes ; savec jobID
+# Gather metagenomes :
+num_csv=$(find sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
+# We expect two gather files per sample (default db + custom db)
+if [[ ${num_csv} -lt "$((2 * ${N_SAM}))" ]]; then
+
+echo "Some output files are missing (${num_csv} found, $((2 * ${N_SAM})) expected.)"
+# redo=$(grep -vnf <(find tmp/sourmash/ -type f -name '*gather.csv' -print0 | xargs -0 -I {} basename {} | sed 's/_.*//' | sort -u) ${SAMPLE_DIR}/clean_samples.tsv| cut -d':' -f1 |  paste -sd,)
+
+# save jobID
 jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAMPLE_DIR,GTDB_V,SM_SK \
 	$MAIN/scripts/gather_SLURM.sh | awk '{print $4}'); echo "Submitted job array with Job ID: $jobID"
-sleep 6
+sleep 600
 
 # Periodically check if the job is still running, then whether all expected output files are there
 while true; do
@@ -189,18 +197,11 @@ while true; do
 		sleep 30
     else
         echo "Job $jobID has finished."
-		num_csv=$(find sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
-		# We expect two gather files per sample (default db + custom db)
-		if [[ ${num_csv} -ge "$((2 * ${N_SAM}))" ]]; then
-			echo "All "${num_csv}" expected output files have been produced."
-		else 
-			echo "Some output files are missing (${num_csv} found, $((2 * ${N_SAM})) expected.)"
-			redo=$(grep -vnf <(find tmp/sourmash/ -type f -name '*gather.csv' -print0 | xargs -0 -I {} basename {} | sed 's/_.*//' | sort -u) ${SAMPLE_DIR}/clean_samples.tsv| cut -d':' -f1 |  paste -sd,)
-			# TBC
-		fi
-		break
     fi
 done
+
+else echo "All "${num_csv}" expected output files were found."
+fi
 
 echo "Summarising containment"
 fix_gtdb sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
