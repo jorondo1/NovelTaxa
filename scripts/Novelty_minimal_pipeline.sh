@@ -44,8 +44,7 @@ fi
 
 export MAIN=${PWD}
 export ILAFORES=/home/def-ilafores
-export ILL_PIPELINES=${ILAFORES}/programs/ILL_pipelines/containers
-export SINGULARITY="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES} ${ILL_PIPELINES}/containers"
+export SINGULARITY="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES} ${ILAFORES}/programs/ILL_pipelines/containers"
 export SOURMASH="${SINGULARITY}/sourmash.4.7.0.sif sourmash"
 export DB=${ILAFORES}/ref_dbs
 export SM_SK=$OUTDIR/tmp/sourmash/sketches
