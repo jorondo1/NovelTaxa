@@ -149,6 +149,7 @@ else
 	$SOURMASH sketch dna -p scaled=1000,k=31,abund \
 	--name-from-first --from-file tmp/nMAG_list.txt \
 	--output-dir ${SM_SK}/nMAGs
+fi
 # if it fails, check if there are empty returns at the end of nMAG_list.txt
 #### Eventually, use 'branchwater multisketch'
 
@@ -195,9 +196,11 @@ while true; do
     sleep 30
 done
 
+echo "Summarising containment"
 fix_gtdb tmp/sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
 eval_cont tmp/sourmash output # compute sample containment and show overall stats
 
+echo "Done !"
 #####################
 ### community_abundance.R
 #####################
