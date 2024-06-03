@@ -91,6 +91,7 @@ $SINGULARITY/checkm2.1.0.2.sif \
 	cp tmp/checkm2/quality_report.tsv output/
 else echo 'checkM output found! Skipping.'
 fi
+exit 1
 
 #####################
 ### skANI
