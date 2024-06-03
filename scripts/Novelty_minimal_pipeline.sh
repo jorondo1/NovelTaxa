@@ -61,7 +61,7 @@ export ANCHOR=/nfs3_ib/nfs-ip34
 export N_SAM=$(wc ${SAMPLE_DIR}/clean_samples.tsv | awk '{print $1}')
 
 # Setup project directories
-mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/logs ${OUTDIR}/tmp/checkm2
+mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2
 
 # gather output post-processing
 wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh -P scripts/
@@ -191,7 +191,7 @@ while true; do
 done
 
 fix_gtdb tmp/sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
-eval_cont tmp/sourmash # compute sample containment and show overall stats
+eval_cont tmp/sourmash output # compute sample containment and show overall stats
 
 #####################
 ### community_abundance.R
