@@ -43,16 +43,16 @@ else
 fi
 echo ${OUTDIR}/sourmash/${SAMPLE}_${GTDB_V}_gather.csv
 
-if [[ ! -f ${OUTDIR}/sourmash/${SAMPLE}_${GTDB_V}_gather.csv ]]; then
+if [[ ! -f ${OUTDIR}/${SAMPLE}_${GTDB_V}_gather.csv ]]; then
 	echo "Gather against the gtdb index"
-	$sourmash gather $SIG ${SM_DB} -o ${OUTDIR}/sourmash/${SAMPLE}_{$GTDB_V}_gather.csv
+	$sourmash gather $SIG ${SM_DB} -o ${OUTDIR}/${SAMPLE}_{$GTDB_V}_gather.csv
 else
 	echo "Gather output found. Skipping..."
 fi
 
-if [[ ! -f ${OUTDIR}/sourmash/${SAMPLE}_custom_gather.csv ]]; then
+if [[ ! -f ${OUTDIR}/${SAMPLE}_custom_gather.csv ]]; then
 	echo "Gather again but add the novel MAGs"
-	$sourmash gather $SIG ${MAGs_IDX} ${SM_DB} -o ${OUTDIR}/sourmash/${SAMPLE}_custom_gather.csv
+	$sourmash gather $SIG ${MAGs_IDX} ${SM_DB} -o ${OUTDIR}/${SAMPLE}_custom_gather.csv
 else
 	echo "Gather output found. Skipping"
 fi
