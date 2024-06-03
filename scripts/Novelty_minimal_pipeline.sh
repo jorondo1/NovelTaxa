@@ -1,38 +1,85 @@
 #!/usr/bin/env bash
 
 #####################
+### PARSING OPTIONS
+#####################
+function Usage {
+    echo "Identify novel species-level MAGs and leverage them for community composition estimation."
+	echo "Current directory should include scripts/novel_MAGs.py."
+	echo "Assumes the GTDB reference genomes are under /home/def-ilafores/ref_dbs/GTDB/gtdb_genomes_reps_*"
+	echo "Options:"
+    echo "-o	Output directory name."
+	echo "-g	GTDB database version (default: r220)"
+	echo "-m	directory containing MAGs"
+	echo "-s	directory containing clean samples"
+    exit 1
+}
+
+while getopts 'o:g:m:s:' flag; do
+    case "${flag}" in
+		o) export OUTDIR=${PWD}/${OPTARG} ;;
+		g) export GTDB_V=${OPTARG} ;;
+		m) export MAG_DIR=${OPTARG} ;;
+		s) export SAMPLE_DIR=${OPTARG} ;;
+    esac
+done
+
+#####################
 ### SETUP
 #####################
+
+if [[ -z "$OUTDIR" ]] || [[ -z "$MAG_DIR" ]] || [[ -z "$SAMPLE_DIR" ]] ; then
+	echo "Argument(s) missing."
+	Usage
+fi
+	
+if [[ -z "$GTDB_V" ]]; then
+	export GTDB_V=r220
+fi
+
+if [[ ! -d ${DB}/GTDB/gtdb_genomes_reps_${GTDB_V} ]]; then
+	echo 'Reference database unavailable. Download and store under "${DB}/GTDB".'
+	Usage
+fi
+
+if [[ ! -f ${PWD}/scripts/novel_MAGs.py ]]; then
+	echo "novel_MAGs.py can't be found!"
+	Usage
+fi
+
+export MAIN=${PWD}
 export ILAFORES=/home/def-ilafores
-export MAIN=${ILAFORES}/analysis/NovelSpecies
 export ILL_PIPELINES=${ILAFORES}/programs/ILL_pipelines/containers
 export DB=${ILAFORES}/ref_dbs
 export SKANI=${ILAFORES}/programs/skani/skani
-export GTDB_SKANI=${DB}/GTDB/gtdb_skani_database_ani
-export GTDB_VERSION=gtdb_genomes_reps_r214
+export GTDB_SKANI=${DB}/GTDB/gtdb_skani_${GTDB_V}
 export ANCHOR=/nfs3_ib/nfs-ip34
 export SINGULARITY="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFORES} ${ILL_PIPELINES}/containers"
 
-# Directory containing MAGs: 
-export MAG_DIR=$ILAFORES/analysis/boreal_moss/MAG_analysis/drep_genomes/dereplicated_genomes
-
 # Setup project directories
-mkdir -p ${MAIN}/out/checkm2 ${MAIN}/sourmash/sketches/nMAGs ${MAIN}/plots ${MAIN}/logs
-cd $MAIN
-find ${MAG_DIR} -type f -name '*.fa' > out/MAG_list.txt
+mkdir -p scripts ${OUTDIR}/checkm2 ${OUTDIR}/sourmash/sketches/nMAGs ${OUTDIR}/output ${OUTDIR}/logs ${OUTDIR}/tmp
+
+# gather output post-processing
+wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh -P scripts/
+source scripts/myFunctions.sh
+
+cd $OUTDIR
+
+# List MAGs
+find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
 
 #####################
 ### CHECKM
 #####################
 
 # Singularity
-if [[ -f out/checkm2/quality_report.tsv ]]; then
+if [[ -f ${OUTDIR}/checkm2/quality_report.tsv ]]; then
 	module load apptainer
 	
 	"$SINGULARITY"/checkm2.1.0.2.sif \
 		checkm2 predict --threads 48 \
 		--database_path ${DB}/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd \
-		--input ${MAG_DIR} --extension .fa --output-directory ${MAIN}/out/checkm2
+		--input ${MAG_DIR} --extension .fa --output-directory ${OUTDIR}/checkm2
 
 	module unload apptainer
 fi
@@ -41,47 +88,37 @@ fi
 ### skANI
 #####################
 
+# Sketch GTDB genomes if required:
 if [[ ! -d ${GTDB_SKANI} ]]; then
-	cd $GTDB_SKANI
-	find / -name '*.fna.gz' > gtdb_file_names.txt
-	${SKANI} sketch -l gtdb_file_names.txt -o gtdb_skani_database_ani -t 72
-	cd $MAIN
+	cd ${DB}/GTDB
+	find gtdb_genomes_reps_${GTDB_V}/ -name '*.fna.gz' > gtdb_files_${GTDB_V}.txt
+	${SKANI} sketch -l gtdb_files_${GTDB_V}.txt -o ${GTDB_SKANI} -t 72
+	cd $OUTDIR
 fi 
 
+# Compute ANI
 if [[ ! -f out/ANI_results.txt ]]; then
-	# Compute ANI
-	${SKANI} search -d ${GTDB_SKANI} -o out/ANI_results.txt -t 72 --ql out/MAG_list.txt 
-	# Format some columns
-	cat out/ANI_results.txt | \
-	sed -e "s|${MAG_DIR}/||g" \
-	-e "s|${GTDB_VERSION}/database/GC./.../.../.../||g" \
-	-e "s/_genomic.fna.gz//g" | \
-	awk 'BEGIN {FS=OFS="\t"} {gsub(".fa", "", $2); print}' > tmp.txt
-	mv tmp.txt out/ANI_results.txt
+	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t 72 --ql $OUTDIR/tmp/MAG_list.txt 
+	# Format output: 
+	cat tmp/ANI_results_raw.txt | sed -e "s|${MAG_DIR}/||g" -e "s|${GTDB_SKANI}/database/GC./.../.../.../||g" \
+	-e "s/_genomic.fna.gz//g" | awk 'BEGIN {FS=OFS="\t"} {gsub(".fa", "", $2); print}' > output/ANI_results.txt
 fi
 
 #####################
 ### identify_novel_MAGs.py
 #####################
 
-if [[ ! -f scripts/novel_MAGs.py ]]; then
-	echo "Program is missing!"
-	exit 1
-fi
-
-python3 scripts/novel_MAGs.py
+python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt -m tmp/MAG_list.txt -c checkm2/quality_report.tsv
 
 #####################
 ### gather_SLURM.sh
 #####################
 
 export SOURMASH="${SINGULARITY}/sourmash.4.7.0.sif sourmash"
-export SAMPLE_DIR=${ILAFORES}/analysis/boreal_moss/preproc
-export MAGs_IDX=$(find ${MAIN}/sourmash/sketches -type f -name 'nMAGs_index*')
+export MAGs_IDX=$(find ${OUTDIR}/sourmash/sketches -type f -name 'nMAGs_index*')
 export N_SAM=$(wc ${SAMPLE_DIR}/clean_samples.tsv | awk '{print $1}')
 
 ml apptainer
-
 # Sketch novel genomes 
 $SOURMASH sketch dna -p scaled=1000,k=31,abund \
 	--name-from-first --from-file out/nMAG_list.txt \
@@ -98,42 +135,47 @@ done
 
 # Create an index 
 $SOURMASH index sourmash/sketches/nMAGs_index sourmash/sketches/nMAGs/*.sig
+module unload apptainer
 
-# Gather metagenomes
-sbatch --array=1-"${N_SAM}" \
-	--export=ANCHOR,ILAFORES,DB,MAIN,MAGs_IDX,SAMPLE_DIR \
-	$PWD/scripts/gather_SLURM.sh
-
+# Gather metagenomes ; savec jobID
+jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAMPLE_DIR,GTDB_V \
+	$MAIN/scripts/gather_SLURM.sh | awk '{print $4}'); echo "Submitted job array with Job ID: $jobID"
 sleep 600
 
-while true; do 
-	num_csv=$(find $MAIN/sourmash -type f -name '*gather.csv' | wc | awk '{print $1}')
-	if [[  -ge "$((2 * N_SAM))" ]]; then
-		break
-	fi
-	sleep 60
+# Periodically check if the job is still running, then whether all expected output files are there
+while true; do
+	# Check if job runs
+    squeue -j "$jobID" > /dev/null 2>&1
+    job_status=$?
+
+    if [ $job_status -eq 0 ]; then
+        echo "Job $jobID is still running."
+    else
+        echo "Job $jobID has finished."
+		num_csv=$(find sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
+		# We expect two gather files per sample (default db + custom db)
+		if [[ ${num_csv} -ge "$((2 * ${N_SAM}))" ]]; then
+			echo "All "${num_csv}" expected output files have been produced."
+		else 
+			echo 'Some output files are missing ("${num_csv}" found, "$((2 * ${N_SAM}))" expected.)'
+			redo=$(grep -vnf <(find sourmash/ -type f -name '*gather.csv' -print0 | xargs -0 -I {} basename {} | sed 's/_.*//' | sort -u) ${SAMPLE_DIR}/clean_samples.tsv| cut -d':' -f1 |  paste -sd,)
+			# TBC
+		fi
+    fi
+    sleep 30
 done
 
-wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh
-source myFunctions.sh; rm myFunctions.sh
-
 fix_gtdb data/sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
-eval_cont data/sourmash
-
+eval_cont data/sourmash # compute sample containment and show overall stats
 
 #####################
 ### community_abundance.R
 #####################
 
+# Containment plot
+# Diversity plot
 
-
-
-#####################
-### Plots.R
-#####################
-
-
-
+# Produce test stats ?? or just annotate diversity plots
 
 
 
