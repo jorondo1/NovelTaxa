@@ -43,6 +43,8 @@ if [[ ! -f ${PWD}/scripts/novel_MAGs.py ]]; then
 	Usage
 fi
 
+echo "$OUTDIR $GTDB_V $MAG_DIR $SAMPLE_DIR"
+exit 1
 export MAIN=${PWD}
 export ILAFORES=/home/def-ilafores
 export ILL_PIPELINES=${ILAFORES}/programs/ILL_pipelines/containers
@@ -74,6 +76,7 @@ cd $OUTDIR
 
 # List MAGs
 find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
+
 
 #####################
 ### CHECKM
