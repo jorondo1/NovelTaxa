@@ -167,8 +167,6 @@ if [[ ! -f ${SM_SK}/nMAGs_index.sbt.zip ]]; then
 else echo 'nMAGs index found. Skipping.'
 fi
 
-
-
 module unload apptainer
 
 #####################
