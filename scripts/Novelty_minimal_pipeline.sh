@@ -37,10 +37,6 @@ if [[ -z "$GTDB_V" ]]; then
 	export GTDB_V=r220
 fi
 
-if [[ ! -d ${DB}/GTDB/gtdb_genomes_reps_${GTDB_V} ]]; then
-	echo 'Reference database unavailable. Download and store under "${DB}/GTDB".'
-	Usage
-fi
 
 if [[ ! -f ${PWD}/scripts/novel_MAGs.py ]]; then
 	echo "novel_MAGs.py can't be found!"
@@ -59,6 +55,11 @@ export SKANI=${ILAFORES}/programs/skani/skani
 export GTDB_SKANI=${DB}/GTDB/gtdb_skani_${GTDB_V}
 export ANCHOR=/nfs3_ib/nfs-ip34
 export N_SAM=$(wc ${SAMPLE_DIR}/clean_samples.tsv | awk '{print $1}')
+
+if [[ ! -d $GTDB_SKANI ]] && [[ ! -d ${DB}/GTDB/gtdb_genomes_reps_${GTDB_V} ]]; then
+	echo 'Reference database unavailable. Download and store under "${DB}/GTDB".'
+	Usage
+fi
 
 # Setup project directories
 mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2
