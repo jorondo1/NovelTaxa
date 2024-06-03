@@ -149,7 +149,6 @@ else
 	$SOURMASH sketch dna -p scaled=1000,k=31,abund \
 	--name-from-first --from-file tmp/nMAG_list.txt \
 	--output-dir ${SM_SK}/nMAGs
-fi
 # it fails, check if there are empty returns at the end of nMAG_list.txt
 #### Eventually, use 'branchwater multisketch'
 
@@ -167,6 +166,7 @@ if [[ ! -f ${SM_SK}/nMAGs_index.sbt.zip ]]; then
 	$SOURMASH index ${SM_SK}/nMAGs_index ${SM_SK}/nMAGs/*.sig
 else echo 'nMAGs index found. Skipping.'
 fi
+
 module unload apptainer
 
 # Gather metagenomes ; savec jobID
