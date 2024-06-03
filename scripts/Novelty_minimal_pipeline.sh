@@ -37,7 +37,6 @@ if [[ -z "$GTDB_V" ]]; then
 	export GTDB_V=r220
 fi
 
-
 if [[ ! -f ${PWD}/scripts/novel_MAGs.py ]]; then
 	echo "novel_MAGs.py can't be found!"
 	Usage
@@ -65,7 +64,7 @@ fi
 mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2
 
 # gather output post-processing
-if [[ -f scripts/myFunctions.sh ]]; then
+if [[ ! -f scripts/myFunctions.sh ]]; then
 	wget https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh -P scripts/
 fi
 source scripts/myFunctions.sh
