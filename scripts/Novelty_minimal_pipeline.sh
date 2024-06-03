@@ -125,7 +125,7 @@ fi
 echo 'Identifying novel MAGs...'
 python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt \
 	-m tmp/MAG_list.txt -c output/quality_report.tsv -o tmp
-exit 1
+
 #####################
 ### gather_SLURM.sh
 #####################
@@ -159,7 +159,7 @@ for file in $(find ${SM_SK}/nMAGs -type f -name '*.sig'); do
 	$SOURMASH sig rename $file "${new_name%.fa.sig}" -o ${SM_SK}/nMAGs/${new_name}
 done
 fi
-
+exit 1
 # Create an index 
 echo 'Create index for genome sketches...'
 $SOURMASH index ${SM_SK}/nMAGs_index ${SM_SK}/nMAGs/*.sig
