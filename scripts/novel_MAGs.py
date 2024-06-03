@@ -43,7 +43,7 @@ def main():
 
     # Filter paths 
     nMAGs = MAGs[MAGs[0].apply(lambda x: any(s in x for s in intersect))]
-    nMAGs.to_csv(f"{args.outdir}/nMAG_list.txt"), index=False, header = False)
+    nMAGs.to_csv(f"{args.outdir}/nMAG_list.txt", index=False, header = False)
 
 # Ensure function call only when script is run directly, not loaded as a module.
 if __name__ == "__main__":
