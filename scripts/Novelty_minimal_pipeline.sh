@@ -73,7 +73,8 @@ source scripts/myFunctions.sh
 cd $OUTDIR
 
 # List MAGs
-find "${MAG_DIR}" -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
+echo $MAG_DIR
+find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
 
 exit 1
 #####################
