@@ -50,11 +50,10 @@ export SINGULARITY="singularity exec --writable-tmpfs -e -B ${ILAFORES}:${ILAFOR
 export SOURMASH="${SINGULARITY}/sourmash.4.7.0.sif sourmash"
 export DB=${ILAFORES}/ref_dbs
 export SM_SK=$OUTDIR/tmp/sourmash/sketches
-export MAGs_IDX=$(find ${SM_SK} -type f -name 'nMAGs_index*')
 export SKANI=${ILAFORES}/programs/skani/skani
 export GTDB_SKANI=${DB}/GTDB/gtdb_skani_${GTDB_V}
 export ANCHOR=/nfs3_ib/nfs-ip34
-export N_SAM=$(wc ${SAMPLE_DIR}/clean_samples.tsv | awk '{print $1}')
+export N_SAM=$(wc ${SAMPLE_DIR}/preprocessed_reads.sample.tsv | awk '{print $1}')
 
 if [[ ! -d $GTDB_SKANI ]] && [[ ! -d ${DB}/GTDB/gtdb_genomes_reps_${GTDB_V} ]]; then
 	echo 'Reference database unavailable. Download and store under "${DB}/GTDB".'
@@ -63,6 +62,8 @@ fi
 
 # Setup project directories
 mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2 ${OUTDIR}/sourmash
+
+export MAGs_IDX=$(find ${SM_SK} -type f -name 'nMAGs_index*')
 
 # gather output post-processing
 if [[ -f scripts/myFunctions.sh ]]; then
