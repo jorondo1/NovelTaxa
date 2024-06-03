@@ -2,7 +2,7 @@
 
 #SBATCH --mail-type=END,FAIL
 #SBATCH -D /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelSpecies/Moss_test
-#SBATCH -o /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelSpecies/Moss_test/sourmash/logs/sourmash-%A_%a.slurm.out
+#SBATCH -o /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelSpecies/Moss_test/tmp/logs/sourmash-%A_%a.slurm.out
 #SBATCH --time=24:00:00
 #SBATCH --mem=15G
 #SBATCH -N 1
