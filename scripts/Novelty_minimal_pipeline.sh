@@ -150,7 +150,7 @@ else
 	--name-from-first --from-file tmp/nMAG_list.txt \
 	--output-dir ${SM_SK}/nMAGs
 fi
-# if it fails, check if there are empty returns at the end of nMAG_list.txt
+# it fails, check if there are empty returns at the end of nMAG_list.txt
 #### Eventually, use 'branchwater multisketch'
 
 # Rename novel genomes signatures (otherwise the whole name of the first contig is used) 
@@ -166,6 +166,7 @@ if [[ ! -f ${SM_SK}/nMAGs_index.sbt.zip ]]; then
 	echo 'Create index for genome sketches...'
 	$SOURMASH index ${SM_SK}/nMAGs_index ${SM_SK}/nMAGs/*.sig
 else echo 'nMAGs index found. Skipping.'
+fi
 module unload apptainer
 
 # Gather metagenomes ; savec jobID
