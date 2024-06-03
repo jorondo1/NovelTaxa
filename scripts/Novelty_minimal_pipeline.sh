@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 message="Identify novel species-level MAGs and leverage them for community composition estimation."
-echo "message"
+echo "$message"
 
 #####################
 ### PARSING OPTIONS
