@@ -15,7 +15,6 @@ export ILAFORES=${ANCHOR}/${ILAFORES}
 export OUTDIR=${ANCHOR}/${OUTDIR}/sourmash
 export SM_DB=${ANCHOR}/${DB}/sourmash_db/gtdb-rs214-reps.k31.zip #atm hardcoded because not produced locally
 export MAGs_IDX=${ANCHOR}/${MAGs_IDX}
-export SAMPLE_DIR=${ANCHOR}/${SAMPLE_DIR}
 export SM_SK=${ANCHOR}/${SM_SK}
 export sourmash="singularity exec --writable-tmpfs -e -B ${ANCHOR}/home:${ANCHOR}/home ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif sourmash"
 echo "$sourmash"
@@ -26,18 +25,19 @@ module load StdEnv/2020 apptainer/1.1.5
 # cp ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif $tmp/
 
 # Define sample
-export SAMPLE_NUM=$(cat ${SAMPLE_DIR}/clean_samples.tsv | awk "NR==$SLURM_ARRAY_TASK_ID")
-export SAMPLE=$(echo -e "$SAMPLE_NUM" | cut -f1)
+export SAM_NUM=$(cat ${ANCHOR}/${SAM_LIST} | awk "NR==$SLURM_ARRAY_TASK_ID")
+export SAMPLE=$(echo -e "$SAM_NUM" | cut -f1)
+export FQ_P1=$(echo -e "$SAM_NUM" | cut -f2)
+export FQ_P2=$(echo -e "$SAM_NUM" | cut -f3)
+export FQ_U1=$(echo -e "$SAM_NUM" | cut -f4)
+export FQ_U2=$(echo -e "$SAM_NUM" | cut -f5)
 export SIG="${SM_SK}/${SAMPLE}.sig"
-export FQ_DIR=${SAMPLE_DIR}/${SAMPLE}
 
 echo "Executing pipeline on sample ${SAMPLE} !"
 
 if [[ ! -f $SIG ]]; then
 	echo "Sketch metagenomes"
-$sourmash sketch dna -p k=31,scaled=1000,abund --merge ${SAMPLE} -o $SIG \
-	${FQ_DIR}/${SAMPLE}_paired_1.fastq ${FQ_DIR}/${SAMPLE}_paired_2.fastq \
-	${FQ_DIR}/${SAMPLE}_unmatched_1.fastq ${FQ_DIR}/${SAMPLE}_unmatched_2.fastq
+$sourmash sketch dna -p k=31,scaled=1000,abund --merge ${SAMPLE} -o $SIG $FQ_P1 $FQ_P2 $FQ_U1 $FQ_U2
 else
 	echo "Metagenome sketches found. Skipping..."
 fi

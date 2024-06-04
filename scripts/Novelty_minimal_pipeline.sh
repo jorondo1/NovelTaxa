@@ -13,7 +13,7 @@ function Usage {
     echo "-o	Output directory name."
 	echo "-g	GTDB database version (default: r220)"
 	echo "-m	directory containing MAGs"
-	echo "-s	directory containing clean samples"
+	echo "-s	tsv file containing paths to paired-end samples (one sample per line, one column per file)"
     exit 1
 }
 
@@ -22,7 +22,7 @@ while getopts 'o:g:m:s:' flag; do
 		o) export OUTDIR=${PWD}/${OPTARG} ;;
 		g) export GTDB_V=${OPTARG} ;;
 		m) export MAG_DIR=${OPTARG} ;;
-		s) export SAMPLE_DIR=${OPTARG} ;;
+		s) export SAM_LIST=${OPTARG} ;;
     esac
 done
 
@@ -30,7 +30,7 @@ done
 ### SETUP
 #####################
 
-if [[ -z "$OUTDIR" ]] || [[ -z "$MAG_DIR" ]] || [[ -z "$SAMPLE_DIR" ]] ; then
+if [[ -z "$OUTDIR" ]] || [[ -z "$MAG_DIR" ]] || [[ -z "$SAM_LIST" ]] ; then
 	echo "Argument(s) missing."
 	Usage
 fi
@@ -53,7 +53,7 @@ export SM_SK=$OUTDIR/tmp/sourmash/sketches
 export SKANI=${ILAFORES}/programs/skani/skani
 export GTDB_SKANI=${DB}/GTDB/gtdb_skani_${GTDB_V}
 export ANCHOR=/nfs3_ib/nfs-ip34
-export N_SAM=$(wc ${SAMPLE_DIR}/preprocessed_reads.sample.tsv | awk '{print $1}')
+export N_SAM=$(wc ${SAM_LIST}/preprocessed_reads.sample.tsv | awk '{print $1}')
 
 if [[ ! -d $GTDB_SKANI ]] && [[ ! -d ${DB}/GTDB/gtdb_genomes_reps_${GTDB_V} ]]; then
 	echo 'Reference database unavailable. Download and store under "${DB}/GTDB".'
@@ -180,10 +180,10 @@ num_csv=$(find sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
 if [[ ${num_csv} -lt "$((2 * ${N_SAM}))" ]]; then
 
 echo "Some output files are missing (${num_csv} found, $((2 * ${N_SAM})) expected.)"
-# redo=$(grep -vnf <(find tmp/sourmash/ -type f -name '*gather.csv' -print0 | xargs -0 -I {} basename {} | sed 's/_.*//' | sort -u) ${SAMPLE_DIR}/clean_samples.tsv| cut -d':' -f1 |  paste -sd,)
+# redo=$(grep -vnf <(find tmp/sourmash/ -type f -name '*gather.csv' -print0 | xargs -0 -I {} basename {} | sed 's/_.*//' | sort -u) ${SAM_LIST}/clean_samples.tsv| cut -d':' -f1 |  paste -sd,)
 
 # save jobID
-jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAMPLE_DIR,GTDB_V,SM_SK \
+jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAM_LIST,GTDB_V,SM_SK \
 	$MAIN/scripts/gather_SLURM.sh | awk '{print $4}'); echo "Submitted job array with Job ID: $jobID"
 sleep 600
 
