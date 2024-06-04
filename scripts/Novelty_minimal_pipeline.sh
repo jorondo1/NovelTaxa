@@ -54,6 +54,7 @@ export SKANI=${ILAFORES}/programs/skani/skani
 export GTDB_SKANI=${DB}/GTDB/gtdb_skani_${GTDB_V}
 export ANCHOR=/nfs3_ib/nfs-ip34
 export N_SAM=$(wc ${SAM_LIST} | awk '{print $1}')
+export THREADS=48
 
 if [[ ! -d $GTDB_SKANI ]] && [[ ! -d ${DB}/GTDB/gtdb_genomes_reps_${GTDB_V} ]]; then
 	echo 'Reference skANI database unavailable. Download and store under "${DB}/GTDB".'
@@ -86,7 +87,7 @@ if [[ ! -f ${OUTDIR}/tmp/checkm2/quality_report.tsv ]]; then
 	module load apptainer
 	
 $SINGULARITY/checkm2.1.0.2.sif \
-	checkm2 predict --threads 48 \
+	checkm2 predict --threads ${THREADS} \
 	--database_path ${DB}/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd \
 	--input ${MAG_DIR} --extension .fa --output-directory ${OUTDIR}/tmp/checkm2
 
@@ -107,7 +108,7 @@ if [[ ! -d ${GTDB_SKANI} ]]; then
 	echo 'sketching GTDB reference genomes...'
 	cd ${DB}/GTDB
 	find gtdb_genomes_reps_${GTDB_V}/ -name '*.fna.gz' > gtdb_files_${GTDB_V}.txt
-	${SKANI} sketch -l gtdb_files_${GTDB_V}.txt -o ${GTDB_SKANI} -t 48
+	${SKANI} sketch -l gtdb_files_${GTDB_V}.txt -o ${GTDB_SKANI} -t ${THREADS}
 	cd $OUTDIR
 else echo 'Genome sketch found! Skipping.'
 fi
@@ -115,7 +116,7 @@ fi
 # Compute ANI
 if [[ ! -f output/ANI_results.txt ]]; then
 	echo 'Calculate ANI using skANI...'
-	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t 72 --ql tmp/MAG_list.txt 
+	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t ${THREADS} --ql tmp/MAG_list.txt 
 	# Format output: 
 	cat tmp/ANI_results_raw.txt | sed -e "s|${MAG_DIR}/||g" -e "s|${GTDB_SKANI}/database/GC./.../.../.../||g" \
 	-e "s/_genomic.fna.gz//g" | awk 'BEGIN {FS=OFS="\t"} {gsub(".fa", "", $2); print}' > output/ANI_results.txt
@@ -200,7 +201,7 @@ while true; do
 
     if [ $job_status -eq 0 ]; then
         echo "Job $jobID is still running."
-		sleep 30
+		sleep 300
     else
         echo "Job $jobID has finished."
     fi
@@ -214,6 +215,7 @@ fix_gtdb sourmash # there's a comma problem that staggers the columns in gtdb ta
 eval_cont sourmash # compute sample containment and show overall stats
 
 echo "Done !"
+
 #####################
 ### community_abundance.R
 #####################
