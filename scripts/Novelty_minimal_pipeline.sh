@@ -105,10 +105,10 @@ if [[ ! -d ${GTDB_SKANI} ]]; then
 	echo 'sketching GTDB reference genomes...'
 	cd ${DB}/GTDB
 	find gtdb_genomes_reps_${GTDB_V}/ -name '*.fna.gz' > gtdb_files_${GTDB_V}.txt
-	${SKANI} sketch -l gtdb_files_${GTDB_V}.txt -o ${GTDB_SKANI} -t 72
+	${SKANI} sketch -l gtdb_files_${GTDB_V}.txt -o ${GTDB_SKANI} -t 48
 	cd $OUTDIR
 else echo 'Genome sketch found! Skipping.'
-fi 
+fi d
 
 # Compute ANI
 if [[ ! -f output/ANI_results.txt ]]; then
@@ -125,9 +125,10 @@ fi
 #####################
 
 echo 'Identifying novel MAGs...'
+module load python/3.11.5
 python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt \
 	-m tmp/MAG_list.txt -c output/quality_report.tsv -o tmp
-
+module unload
 #####################
 ### Sketch & index nMAGs
 #####################
