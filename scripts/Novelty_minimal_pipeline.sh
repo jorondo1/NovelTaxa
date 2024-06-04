@@ -137,13 +137,12 @@ ml apptainer
 # Check if all MAGs have a signature sketched
 missing_sig=()
 while IFS= read -r fa; do 
-	if [ -e "$(basename ${fa}).sig" ]; then 
+	if [ ! -e "$(basename ${fa}).sig" ]; then 
 	missing_sig+=("$fa")
 	fi
 done < tmp/nMAG_list.txt
 
 # Sketch novel genomes 
-
 if [ ${#missing_sig[@]} -eq 0 ]; then
 	echo 'All MAGs have been sketched. Skipping.'
 else
