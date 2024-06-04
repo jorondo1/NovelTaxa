@@ -67,7 +67,7 @@ if [[ ! -f ${DB}/sourmash_db/gtdb-rs${GTDB_V/r}-reps.k31.zip ]]; then
 fi
 
 # Setup project directories
-mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2 ${OUTDIR}/sourmash
+mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2 ${OUTDIR}/sourmash
 
 export MAGs_IDX=$(find ${SM_SK} -type f -name 'nMAGs_index*')
 
@@ -82,7 +82,7 @@ cd $OUTDIR
 #####################
 
 # Singularity
-if [[ ! -f ${OUTDIR}/tmp/checkm2/quality_report.tsv ]]; then
+if [[ ! -f tmp/checkm2/quality_report.tsv ]]; then
 	echo "Running checkm!"
 	module load apptainer
 	
@@ -92,7 +92,7 @@ $SINGULARITY/checkm2.1.0.2.sif \
 	--input ${MAG_DIR} --extension .fa --output-directory ${OUTDIR}/tmp/checkm2
 
 	module unload apptainer
-	cp tmp/checkm2/quality_report.tsv output/
+	cp tmp/checkm2/quality_report.tsv .
 else echo 'checkM output found! Skipping.'
 fi
 
@@ -114,12 +114,12 @@ else echo 'Genome sketch found! Skipping.'
 fi
 
 # Compute ANI
-if [[ ! -f output/ANI_results.txt ]]; then
+if [[ ! -f ANI_results.txt ]]; then
 	echo 'Calculate ANI using skANI...'
 	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t ${THREADS} --ql tmp/MAG_list.txt 
 	# Format output: 
 	cat tmp/ANI_results_raw.txt | sed -e "s|${MAG_DIR}/||g" -e "s|${GTDB_SKANI}/database/GC./.../.../.../||g" \
-	-e "s/_genomic.fna.gz//g" | awk 'BEGIN {FS=OFS="\t"} {gsub(".fa", "", $2); print}' > output/ANI_results.txt
+	-e "s/_genomic.fna.gz//g" | awk 'BEGIN {FS=OFS="\t"} {gsub(".fa", "", $2); print}' > ANI_results.txt
 else echo 'skANI results found! Skipping.'
 fi
 
@@ -129,8 +129,8 @@ fi
 
 echo 'Identifying novel MAGs...'
 module load python/3.11.5
-python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt \
-	-m tmp/MAG_list.txt -c output/quality_report.tsv -o tmp
+python3 ${MAIN}/scripts/novel_MAGs.py -a ANI_results.txt \
+	-m tmp/MAG_list.txt -c quality_report.tsv -o tmp
 module unload
 
 #####################
@@ -214,18 +214,6 @@ fix_gtdb sourmash # there's a comma problem that shifts the columns in gtdb taxo
 eval_cont sourmash # compute sample containment and show overall stats
 
 echo "Done !"
-
-#####################
-### community_abundance.R
-#####################
-
-# Rscript my_script.R "${GTDB_V}"
-
-# Containment plot
-# Diversity plot
-
-# Produce test stats ?? or just annotate diversity plots
-
 
 
 

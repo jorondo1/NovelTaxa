@@ -10,7 +10,7 @@ def main():
     parser = argparse.ArgumentParser(description="Identify novel species-level MAGs from skANI output.")
 
     # Add arguments
-    parser.add_argument('-a', '--ANI_results', type=str, required=True, help='File containing skANI results.', default='output/ANI_results.txt')
+    parser.add_argument('-a', '--ANI_results', type=str, required=True, help='File containing skANI results.', default='ANI_results.txt')
     parser.add_argument('-m', '--MAG_list', type=str, help='File with with full path to MAGs (one per lines)', default='tmp/MAG_list.txt')
     parser.add_argument('-c', '--checkm', type=str, help='Checkm quality report.', default='checkm2/quality_report.tsv')
     parser.add_argument('-o', '--outdir', type=str, help='output directory')
