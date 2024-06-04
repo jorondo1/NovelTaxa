@@ -137,9 +137,9 @@ ml apptainer
 # Check if all MAGs have a signature sketched
 missing_sig=()
 while IFS= read -r fa; do 
-	if [ ! -e "$(basename ${fa}).sig" ]; then 
-	missing_sig+=("${SM_SK}/nMAGs/$(basename $fa)")
-	echo "${SM_SK}/nMAGs/$(basename $fa)"
+	SIG="${SM_SK}/nMAGs/$(basename $fa)"
+	if [ ! -e "$SIG".sig ]; then 
+	missing_sig+=("$SIG")
 	fi
 done < tmp/nMAG_list.txt
 
