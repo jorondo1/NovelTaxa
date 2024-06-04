@@ -138,7 +138,8 @@ ml apptainer
 missing_sig=()
 while IFS= read -r fa; do 
 	if [ ! -e "$(basename ${fa}).sig" ]; then 
-	missing_sig+=("$fa")
+	missing_sig+=("${SM_SK}/nMAGs/$(basename $fa)")
+	echo "${SM_SK}/nMAGs/$(basename $fa)"
 	fi
 done < tmp/nMAG_list.txt
 
