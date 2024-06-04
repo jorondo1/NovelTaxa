@@ -13,7 +13,7 @@ function Usage {
     echo "-o	Output directory name."
 	echo "-g	GTDB database version (default: r220)"
 	echo "-m	directory containing MAGs"
-	echo "-s	tsv file containing paths to paired-end samples (one sample per line, one column per file)"
+	echo "-s	tab-delimited file with paths to samples (one sample per line, one column per file, first column is the sample ID)"
     exit 1
 }
 
@@ -56,7 +56,12 @@ export ANCHOR=/nfs3_ib/nfs-ip34
 export N_SAM=$(wc ${SAM_LIST} | awk '{print $1}')
 
 if [[ ! -d $GTDB_SKANI ]] && [[ ! -d ${DB}/GTDB/gtdb_genomes_reps_${GTDB_V} ]]; then
-	echo 'Reference database unavailable. Download and store under "${DB}/GTDB".'
+	echo 'Reference skANI database unavailable. Download and store under "${DB}/GTDB".'
+	Usage
+fi
+if [[ ! -f ${DB}/sourmash_db/gtdb-rs${GTDB_V/r}-reps.k31.zip ]]; then
+	echo 'Reference Sourmash database unavailable. Currently available: '
+	ls $DB/sourmash_db/gtdb*k31.zip
 	Usage
 fi
 
@@ -65,17 +70,11 @@ mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/output ${OUTDIR}/tmp/logs ${OUTDIR}/tm
 
 export MAGs_IDX=$(find ${SM_SK} -type f -name 'nMAGs_index*')
 
-# gather output post-processing
-if [[ -f scripts/myFunctions.sh ]]; then
-	rm scripts/myFunctions.sh
-fi
-wget -q https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh -P scripts/
+# gather output post-processing functions
+curl -s -o scripts/myFunctions.sh https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh
 source scripts/myFunctions.sh
 
 cd $OUTDIR
-
-# List MAGs
-find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
 
 #####################
 ### CHECKM
@@ -99,6 +98,9 @@ fi
 #####################
 ### skANI
 #####################
+
+# List MAGs
+find ${MAG_DIR} -type f -name '*.fa' > ${OUTDIR}/tmp/MAG_list.txt
 
 # Sketch GTDB genomes if required:
 if [[ ! -d ${GTDB_SKANI} ]]; then
@@ -176,6 +178,7 @@ module unload apptainer
 #####################
 ### Gather Metagenomes
 #####################
+
 # Gather metagenomes :
 num_csv=$(find sourmash/ -type f -name '*gather.csv' | wc | awk '{print $1}')
 # We expect two gather files per sample (default db + custom db)
