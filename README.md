@@ -6,6 +6,8 @@ This workflow quickly identifies MAGs representing species that have no represen
 4. Community composition estimation of metagenomic samples with `Sourmash gather`
 5. Containment and alpha-diversity comparisons before / after adding nMAGs with `ggplot2`
 
+Example usage :
+
 ```
 export MAG_DIR=$ILAFORES/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes
 export SAM_LIST=$ILAFORES/analysis/projet_PROVID19/Saliva/preproc/preprocessed_reads.sample.tsv
