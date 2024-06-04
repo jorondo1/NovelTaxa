@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd $ILAFORES/analysis/NovelSpecies
+cd $ILAFORES/analysis/NovelTaxa
 
 export OUTDIR=$PWD/Moss_test
 export MAIN=${PWD}

@@ -1,8 +1,8 @@
 #!/bin/bash -l
 
 #SBATCH --mail-type=END,FAIL
-#SBATCH -D /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelTaxa/Moss_test
-#SBATCH -o /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelTaxa/Moss_test/tmp/logs/sourmash-%A_%a.slurm.out
+#SBATCH -D /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelTaxa/
+#SBATCH -o /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelTaxa/logs/sourmash-%A_%a.slurm.out
 #SBATCH --time=24:00:00
 #SBATCH --mem=15G
 #SBATCH -N 1
@@ -24,7 +24,6 @@ module load StdEnv/2020 apptainer/1.1.5
 # copy container
 # cp ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif $tmp/
 
-# Define sample
 export SAM_NUM=$(cat ${ANCHOR}/${SAM_LIST} | awk "NR==$SLURM_ARRAY_TASK_ID")
 export SAMPLE=$(echo -e "$SAM_NUM" | cut -f1)
 export FQ_P1=$(echo -e "$SAM_NUM" | cut -f2)
