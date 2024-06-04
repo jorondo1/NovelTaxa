@@ -191,7 +191,6 @@ echo "Some output files are missing (${num_csv} found, $((2 * ${N_SAM})) expecte
 # save jobID
 jobID=$(sbatch --array=1-"${N_SAM}" --export=ANCHOR,ILAFORES,DB,OUTDIR,MAGs_IDX,SAM_LIST,GTDB_V,SM_SK \
 	$MAIN/scripts/gather_SLURM.sh | awk '{print $4}'); echo "Submitted job array with Job ID: $jobID"
-sleep 600
 
 # Periodically check if the job is still running, then whether all expected output files are there
 while true; do
@@ -211,7 +210,7 @@ else echo "All "${num_csv}" expected output files were found."
 fi
 
 echo "Summarising containment"
-fix_gtdb sourmash # there's a comma problem that staggers the columns in gtdb taxonomy
+fix_gtdb sourmash # there's a comma problem that shifts the columns in gtdb taxonomy
 eval_cont sourmash # compute sample containment and show overall stats
 
 echo "Done !"
