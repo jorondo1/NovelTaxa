@@ -24,34 +24,33 @@ module load StdEnv/2020 apptainer/1.1.5
 # copy container
 # cp ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif $tmp/
 
-export SAM_NUM=$(cat ${ANCHOR}/${SAM_LIST} | awk "NR==$SLURM_ARRAY_TASK_ID")
-export SAMPLE=$(echo -e "$SAM_NUM" | cut -f1)
-export FQ_P1=$(echo -e "$SAM_NUM" | cut -f2)
-export FQ_P2=$(echo -e "$SAM_NUM" | cut -f3)
-export FQ_U1=$(echo -e "$SAM_NUM" | cut -f4)
-export FQ_U2=$(echo -e "$SAM_NUM" | cut -f5)
-export SIG="${SM_SK}/${SAMPLE}.sig"
+# Varialbes with sampleID and fastq paths
+export SAM_NUM=$(awk "NR==$SLURM_ARRAY_TASK_ID" ${ANCHOR}/${SAM_LIST})
+IFS=$'\t' read -r SAM_ID FQ_P1 FQ_P2 FQ_U1 FQ_U2 <<< "$SAM_NUM" # array it up
+export SAM_ID FQ_P1 FQ_P2 FQ_U1 FQ_U2
 
-echo "Executing pipeline on sample ${SAMPLE} !"
+export SIG="${SM_SK}/${SAM_ID}.sig"
+
+echo "Executing pipeline on sample ${SAM_ID} !"
 
 if [[ ! -f $SIG ]]; then
 	echo "Sketch metagenomes"
-$sourmash sketch dna -p k=31,scaled=1000,abund --merge ${SAMPLE} -o $SIG $FQ_P1 $FQ_P2 $FQ_U1 $FQ_U2
+$sourmash sketch dna -p k=31,scaled=1000,abund --merge ${SAM_ID} -o $SIG $FQ_P1 $FQ_P2 $FQ_U1 $FQ_U2
 else
 	echo "Metagenome sketches found. Skipping..."
 fi
-echo ${OUTDIR}/sourmash/${SAMPLE}_${GTDB_V}_gather.csv
+echo ${OUTDIR}/sourmash/${SAM_ID}_${GTDB_V}_gather.csv
 
-if [[ ! -f ${OUTDIR}/${SAMPLE}_${GTDB_V}_gather.csv ]]; then
+if [[ ! -f ${OUTDIR}/${SAM_ID}_${GTDB_V}_gather.csv ]]; then
 	echo "Gather against the gtdb index"
-	$sourmash gather $SIG ${SM_DB} -o ${OUTDIR}/${SAMPLE}_${GTDB_V}_gather.csv
+	$sourmash gather $SIG ${SM_DB} -o ${OUTDIR}/${SAM_ID}_${GTDB_V}_gather.csv
 else
 	echo "Gather output found. Skipping..."
 fi
 
-if [[ ! -f ${OUTDIR}/${SAMPLE}_custom_gather.csv ]]; then
+if [[ ! -f ${OUTDIR}/${SAM_ID}_custom_gather.csv ]]; then
 	echo "Gather again but add the novel MAGs"
-	$sourmash gather $SIG ${MAGs_IDX} ${SM_DB} -o ${OUTDIR}/${SAMPLE}_custom_gather.csv
+	$sourmash gather $SIG ${MAGs_IDX} ${SM_DB} -o ${OUTDIR}/${SAM_ID}_custom_gather.csv
 else
 	echo "Gather output found. Skipping"
 fi
