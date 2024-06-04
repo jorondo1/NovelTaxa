@@ -44,7 +44,7 @@ echo ${OUTDIR}/sourmash/${SAMPLE}_${GTDB_V}_gather.csv
 
 if [[ ! -f ${OUTDIR}/${SAMPLE}_${GTDB_V}_gather.csv ]]; then
 	echo "Gather against the gtdb index"
-	$sourmash gather $SIG ${SM_DB} -o ${OUTDIR}/${SAMPLE}_{$GTDB_V}_gather.csv
+	$sourmash gather $SIG ${SM_DB} -o ${OUTDIR}/${SAMPLE}_${GTDB_V}_gather.csv
 else
 	echo "Gather output found. Skipping..."
 fi
