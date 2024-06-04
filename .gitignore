@@ -2,6 +2,7 @@ tmp/
 bak/
 doc/
 logs/
+archive/
 *.fa
 .RData
 .Rhistory
