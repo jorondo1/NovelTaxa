@@ -108,7 +108,7 @@ if [[ ! -d ${GTDB_SKANI} ]]; then
 	${SKANI} sketch -l gtdb_files_${GTDB_V}.txt -o ${GTDB_SKANI} -t 48
 	cd $OUTDIR
 else echo 'Genome sketch found! Skipping.'
-fi d
+fi
 
 # Compute ANI
 if [[ ! -f output/ANI_results.txt ]]; then
@@ -129,6 +129,7 @@ module load python/3.11.5
 python3 ${MAIN}/scripts/novel_MAGs.py -a output/ANI_results.txt \
 	-m tmp/MAG_list.txt -c output/quality_report.tsv -o tmp
 module unload
+
 #####################
 ### Sketch & index nMAGs
 #####################
