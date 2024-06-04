@@ -53,7 +53,7 @@ export SM_SK=$OUTDIR/tmp/sourmash/sketches
 export SKANI=${ILAFORES}/programs/skani/skani
 export GTDB_SKANI=${DB}/GTDB/gtdb_skani_${GTDB_V}
 export ANCHOR=/nfs3_ib/nfs-ip34
-export N_SAM=$(wc ${SAM_LIST}/preprocessed_reads.sample.tsv | awk '{print $1}')
+export N_SAM=$(wc ${SAM_LIST} | awk '{print $1}')
 
 if [[ ! -d $GTDB_SKANI ]] && [[ ! -d ${DB}/GTDB/gtdb_genomes_reps_${GTDB_V} ]]; then
 	echo 'Reference database unavailable. Download and store under "${DB}/GTDB".'
