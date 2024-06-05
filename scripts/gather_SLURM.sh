@@ -3,8 +3,8 @@
 #SBATCH --mail-type=END,FAIL
 #SBATCH -D /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelTaxa/
 #SBATCH -o /nfs3_ib/nfs-ip34/home/def-ilafores/analysis/NovelTaxa/logs/sourmash-%A_%a.slurm.out
-#SBATCH --time=24:00:00
-#SBATCH --mem=15G
+#SBATCH --time=48:00:00
+#SBATCH --mem=30G
 #SBATCH -N 1
 #SBATCH -n 2
 #SBATCH -A def-ilafores
