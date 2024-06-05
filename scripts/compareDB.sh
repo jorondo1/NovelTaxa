@@ -23,7 +23,6 @@ bash $NOVEL -o Boreal_mosses -g ${GTDB_V} \
 
 # Produce test stats ?? or just annotate diversity plots
 
-
 ######################
 ### Eventually :
 ######################
