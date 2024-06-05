@@ -203,6 +203,7 @@ while true; do
 		sleep 300
     else
         echo "Job $jobID has finished."
+		break
     fi
 done
 
