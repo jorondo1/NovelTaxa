@@ -3,37 +3,44 @@ library(tidyverse, phyloseq)
 # Sourmash output parsing function (custom)
 source(url('https://raw.githubusercontent.com/jorondo1/misc_scripts/main/community_functions.R'))
 source(url('https://raw.githubusercontent.com/jorondo1/misc_scripts/main/rarefy_even_depth2.R'))
+source("scripts/myFunctions.R")
 
 # Import environment arguments
 args <- commandArgs(trailingOnly = TRUE)
-dbName <- args[1] #e.g. r214
+db <- args[1] # db <- 'r214'
 
 # Sample k-mer containment across databases 
-cntm.df <- read_delim("sourmash/cntm_sum.txt", 
-                      col_names = c("Sample", "db", "cntm"))
+cntm.df <- list.dirs(path='.', recursive=FALSE, full.names=TRUE) %>% 
+  # extract 1st level dir name where */sourmash/cntm_sum.txt exists
+  purrr::keep(~ file.exists(file.path(.x, "sourmash", "cntm_sum.txt"))) %>% 
+  # parse with custom function
+  map_dfr(~ read_label(.x , columns = c('Sample', 'db', 'cntm')))
 
-cntm.df %>% group_by(db) %>% 
+cntm.df %>% group_by(Dataset, db) %>% 
   summarise(mean_cntm = mean(cntm),
             sd_cntm = sd(cntm),
             n_sam = n())
 
 ggplot(cntm.df, aes(x = db, y = cntm, fill=db)) +
-    geom_violin() + geom_jitter(alpha = 0.2) + 
-    theme_minimal(base_size = 16) + guides(fill = 'none') +
-    labs(y = 'Sample k-mer containment', x = 'Reference database')
+  geom_violin() + geom_jitter(alpha = 0.2) + 
+  facet_wrap(~Dataset, scales= 'free') +
+  theme_minimal(base_size = 16) + guides(fill = 'none') +
+  labs(y = 'Sample k-mer containment', x = 'Reference database')
 
 # Containment increase after adding MAGs 
 cntmDiff <- cntm.df %>% 
   pivot_wider(names_from = db, values_from = cntm) %>% 
   mutate(fold_inc = custom/!!sym(dbName))
 
-cntmDiff %>% summarise(
+cntmDiff %>% group_by(Dataset) %>% 
+  summarise(
   mean_inc = mean(fold_inc),
   sd_inc = sd(fold_inc)
 )
 
-ggplot(cntmDiff, aes(x = "Boreal moss", y = fold_inc)) +
-  geom_violin() + geom_jitter(alpha =0.2, width = 0.2) +
+cntmDiff %>% filter(Dataset == 'Boreal_mosses') %>% 
+ggplot(aes(x = "Boreal moss", y = fold_inc)) +
+  geom_violin() + geom_jitter(alpha =0.5, width = 0.2) +
   theme_minimal(base_size = 16) + 
   labs(y = 'Fold increase in sample k-mers containment', x = 'Microbiome') +
   scale_y_continuous(limits = c(0, NA), breaks = seq(0, max(cntmDiff$fold_inc), by = 2))  # Set minimum y value and increments
