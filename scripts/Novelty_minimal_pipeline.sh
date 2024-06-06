@@ -82,7 +82,7 @@ cd $OUTDIR
 #####################
 
 # Singularity
-if [[ ! -f tmp/checkm2/quality_report.tsv ]]; then
+if [[ ! -f $OUTDIR/tmp/checkm2/quality_report.tsv ]]; then
 	echo "Running checkm!"
 	module load apptainer
 	
@@ -92,9 +92,9 @@ $SINGULARITY/checkm2.1.0.2.sif \
 	--input ${MAG_DIR} --extension .fa --output-directory ${OUTDIR}/tmp/checkm2
 
 	module unload apptainer
-	cp tmp/checkm2/quality_report.tsv .
 else echo 'checkM output found! Skipping.'
 fi
+cp $OUTDIR/tmp/checkm2/quality_report.tsv .
 
 #####################
 ### skANI
@@ -114,7 +114,7 @@ else echo 'Genome sketch found! Skipping.'
 fi
 
 # Compute ANI
-if [[ ! -f ANI_results.txt ]]; then
+if [[ ! -f $OUTDIR/ANI_results.txt ]]; then
 	echo 'Calculate ANI using skANI...'
 	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t ${THREADS} --ql tmp/MAG_list.txt 
 	# Format output: 
@@ -129,8 +129,8 @@ fi
 
 echo 'Identifying novel MAGs...'
 module load python/3.11.5
-python3 ${MAIN}/scripts/novel_MAGs.py -a ANI_results.txt \
-	-m tmp/MAG_list.txt -c quality_report.tsv -o tmp
+python3 ${MAIN}/scripts/novel_MAGs.py -a $OUTDIR/ANI_results.txt \
+	-m $OUTDIR/tmp/MAG_list.txt -c $OUTDIR/quality_report.tsv -o tmp
 module unload
 
 #####################
