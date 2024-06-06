@@ -11,11 +11,11 @@
 #SBATCH -J sourmash
 
 newgrp def-ilafores
-export ILAFORES=${ANCHOR}/${ILAFORES}
-export OUTDIR=${ANCHOR}/${OUTDIR}/sourmash
-export SM_DB=${ANCHOR}/${DB}/sourmash_db/gtdb-rs214-reps.k31.zip #atm hardcoded because not produced locally
-export MAGs_IDX=${ANCHOR}/${MAGs_IDX}
-export SM_SK=${ANCHOR}/${SM_SK}
+export ILAFORES=${ANCHOR}${ILAFORES}
+export OUTDIR=${ANCHOR}${OUTDIR}/sourmash
+export SM_DB=${ANCHOR}${DB}/sourmash_db/gtdb-rs214-reps.k31.zip #atm hardcoded because not produced locally
+export MAGs_IDX=${ANCHOR}${MAGs_IDX}
+export SM_SK=${ANCHOR}${SM_SK}
 export sourmash="singularity exec --writable-tmpfs -e -B ${ANCHOR}/home:${ANCHOR}/home ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif sourmash"
 echo "$sourmash"
 echo "loading env"
@@ -25,7 +25,7 @@ module load StdEnv/2020 apptainer/1.1.5
 # cp ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif $tmp/
 
 # Varialbes with sampleID and fastq paths
-export SAM_NUM=$(awk "NR==$SLURM_ARRAY_TASK_ID" ${ANCHOR}/${SAM_LIST})
+export SAM_NUM=$(awk "NR==$SLURM_ARRAY_TASK_ID" ${ANCHOR}${SAM_LIST})
 IFS=$'\t' read -r SAM_ID FQ_P1 FQ_P2 FQ_U1 FQ_U2 <<< "$SAM_NUM" # array it up
 export SAM_ID FQ_P1 FQ_P2 FQ_U1 FQ_U2
 
