@@ -9,17 +9,19 @@ source("scripts/myFunctions.R")
 args <- commandArgs(trailingOnly = TRUE)
 db <- args[1] # db <- 'r214'
 
-# Sample k-mer containment across databases 
-cntm.df <- list.dirs(path='.', recursive=FALSE, full.names=TRUE) %>% 
+project_paths <- list.dirs(path='.', recursive=FALSE, full.names=TRUE) %>% 
   # extract 1st level dir name where */sourmash/cntm_sum.txt exists
-  purrr::keep(~ file.exists(file.path(.x, "sourmash", "cntm_sum.txt"))) %>% 
-  # parse with custom function
-  map_dfr(~ read_label(.x , columns = c('Sample', 'db', 'cntm')))
+  purrr::keep(~ file.exists(file.path(.x, "sourmash", "cntm_sum.txt")))
+
+# Sample k-mer containment across databases 
+cntm.df <- map_dfr(project_paths, 
+                   ~ read_label(.x , columns = c('Sample', 'db', 'cntm')))
 
 cntm.df %>% group_by(Dataset, db) %>% 
   summarise(mean_cntm = mean(cntm),
             sd_cntm = sd(cntm),
             n_sam = n())
+dbNames <- cntm.df %$% db %>% unique
 
 ggplot(cntm.df, aes(x = db, y = cntm, fill=db)) +
   geom_violin() + geom_jitter(alpha = 0.2) + 
@@ -39,17 +41,24 @@ cntmDiff %>% group_by(Dataset) %>%
 )
 
 cntmDiff %>% filter(Dataset == 'Boreal_mosses') %>% 
-ggplot(aes(x = "Boreal moss", y = fold_inc)) +
-  geom_violin() + geom_jitter(alpha =0.5, width = 0.2) +
-  theme_minimal(base_size = 16) + 
-  labs(y = 'Fold increase in sample k-mers containment', x = 'Microbiome') +
-  scale_y_continuous(limits = c(0, NA), breaks = seq(0, max(cntmDiff$fold_inc), by = 2))  # Set minimum y value and increments
+  ggplot(aes(x = "Boreal moss", y = fold_inc)) +
+    geom_violin() + geom_jitter(alpha =0.5, width = 0.2) +
+    theme_minimal(base_size = 16) + 
+    labs(y = 'Fold increase in sample k-mers containment', x = 'Microbiome') +
+    scale_y_continuous(limits = c(0, NA), breaks = seq(0, max(cntmDiff$fold_inc), by = 2))  # Set minimum y value and increments
 
+####################
 # Alpha diversity #
+####################
 
-# Parse Sourmash gather output 
-custom <- parse_SM('sourmash/*custom_gather.csv')
-GTDB <- parse_SM(paste0('sourmash/*',dbName,'_gather.csv'))
+# Parse all Sourmash gather output 
+SM_out <- list()
+for (p in project_paths) {
+  for (db in dbNames) {
+    name <- basename(p) %>% paste0('_', db)
+    SM_out[[name]] <- parse_SM(paste0(p, "/sourmash/", "*", db, "_gather.csv"))
+  }
+}
 
 # Import metadata from moss project 
 moss.ps <- readRDS(url("https://github.com/jorondo1/borealMoss/raw/main/data/R_out/mossMAGs.RDS",
@@ -57,10 +66,10 @@ moss.ps <- readRDS(url("https://github.com/jorondo1/borealMoss/raw/main/data/R_o
 sample_data <- moss_custom.ps@sam_data %>% data.frame %>% rownames_to_column("Sample")
 
 # Phyloseq objects 
-moss_custom.ps <- phyloseq(otu_table(custom, taxa_are_rows = TRUE), 
+moss_custom.ps <- phyloseq(otu_table(SM_out$Boreal_mosses_custom, taxa_are_rows = TRUE), 
                            sample_data(moss.ps@sam_data)) 
 
-moss_GTDB.ps <- phyloseq(otu_table(GTDB, taxa_are_rows = TRUE), 
+moss_GTDB.ps <- phyloseq(otu_table(SM_out$Boreal_mosses_r214, taxa_are_rows = TRUE), 
                           sample_data(moss.ps@sam_data)) 
 
 # compute alpha-diversity 
