@@ -3,26 +3,27 @@ p_load(tidyverse, phyloseq, magrittr, foreach, iterators, parallel,
        extrafont, showtext)
 
 source('scripts/comm_comp_data.R')
+font_add(family = "Georgia", regular = "/System/Library/Fonts/Supplemental/Georgia.ttf")
 custom_theme <- theme_light(base_size = 28, 
                             base_family = 'Georgia')
+showtext_auto()
 
 ### Containment across databases and projects
 cntm.df %>% # Format db and dataset names
   mutate(Dataset = case_when(Dataset == "Boreal_mosses" ~ "Boreal mosses",
-                             Dataset == "Provid19" ~ "Human saliva"),
+                             Dataset == "Saliva" ~ "Human saliva"),
          db = case_when(db == dbNames[1] ~ 'Default GTDB r214',
                         db == dbNames[2] ~ 'r214 with nMAGs')) %>% 
   # Plot !
   ggplot(aes(x = db, y = cntm)) +
   geom_violin(aes(fill=db)) + # so dots don't appear in the legend!
-  geom_jitter(alpha = 0.5, width=0.1,size = 2) + 
+  geom_jitter(alpha = 1, width=0.1,size = 1) + 
   facet_wrap(~Dataset, scales= 'free', nrow=2) +
   custom_theme +
   labs(y = 'Sample k-mer containment', x = '', fill = '') +
   theme(axis.text.x = element_blank(),
-        legend.position = 'bottom',
-        legend.title = element_blank(),
-        legend.margin = margin(t = -30),
+        axis.title.x = element_blank(),
+        legend.position = 'none',
         axis.text.y = element_text(size = 12)) 
 
 ggsave('figures/cntm.pdf',  bg = 'white', 
@@ -48,17 +49,17 @@ moss_div_long_formatted %>%
   ggplot(aes(x = db, y = Shannon)) +
     geom_boxplot(aes(fill = db)) +
     geom_point(alpha = 0.5) + geom_line(aes(group = Sample), alpha=0.3) + 
-  custom_theme +
-  facet_wrap(~Title) +
-  labs(y = 'Shannon diversity') +
-  #scale_fill_manual(values = MetBrewer::MetPalettes$VanGogh2[[1]][c(5,6)]) +
-  #scale_fill_manual(values = MetBrewer::met.brewer('Klimt', n=2, override.order = TRUE)) +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        legend.position = 'bottom',
-        legend.title = element_blank(),
-        legend.margin = margin(t = -10),
-        axis.text.y = element_text(size = 12)) 
+    custom_theme +
+    facet_wrap(~Title) +
+    labs(y = 'Shannon diversity') +
+    #scale_fill_manual(values = MetBrewer::MetPalettes$VanGogh2[[1]][c(5,6)]) +
+    #scale_fill_manual(values = MetBrewer::met.brewer('Klimt', n=2, override.order = TRUE)) +
+    theme(axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          legend.position = 'bottom',
+          legend.title = element_blank(),
+          legend.margin = margin(t = -10),
+          axis.text.y = element_text(size = 12)) 
 
 ggsave('figures/div_var.pdf',  bg = 'white', 
        width = 20, height = 45, units = 'cm')
