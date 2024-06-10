@@ -95,13 +95,17 @@ moss_div_long <- moss_div %>%
     values_to = 'Shannon',
     names_to = 'db',
     cols = c(dbNames[2], dbNames[1])) %>% 
-  left_join(dplyr::select(sample_data, Sample, Compartment, Host), 
+  left_join(dplyr::select(sample_data, Sample, Compartment, Host, Location), 
             by = "Sample") 
 
 message('Mean and variance of diversity across db:')
 moss_div_long %>% group_by(db) %>% # Summarise diversity 
   summarise(meanDiv = mean(Shannon),
             varDiv = var(Shannon)) %>% as.data.frame %>% print
+
+moss_div %>% mutate(delta_div = (custom-r214)/r214) %>% 
+  summarise(mean = mean(delta_div),
+            sd = sd(delta_div))
 
 # Linear regression Shannon - Host moss species
 lm_r214 <- moss_div_long %>% 
@@ -112,10 +116,10 @@ lm_custom <- moss_div_long %>%
   filter(db == dbNames[2]) %>% 
   lm(Shannon ~ Host, data = .) 
 
+summary(lm_r214) %>%  print # 6% variance explained
 aov(lm_r214) %>% summary # barely significant difference
+summary(lm_custom) %>% print # 20% variance explained
 aov(lm_custom) %>% summary # highly significant difference
-summary(lm_r214) %$% r.squared # 6% variance explained
-summary(lm_custom) %$% r.squared # 20% variance explained
 
 residuals(lm_custom) %>% shapiro.test # normal-ish p=0.04
 residuals(lm_r214) %>% shapiro.test # normal p=0.50
