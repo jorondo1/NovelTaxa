@@ -6,7 +6,7 @@ export GTDB_V=r214
 
 cd $ANALYSIS/NovelTaxa
 
-bash $NOVEL -o Provid19 -g ${GTDB_V} \
+bash $NOVEL -o Saliva -g ${GTDB_V} \
 	-m $ANALYSIS/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes \
 	-s $ANALYSIS/projet_PROVID19/Saliva/preproc/preprocessed_reads.sample.tsv
 
