@@ -6,11 +6,11 @@ export GTDB_V=r214
 
 cd $ANALYSIS/NovelTaxa
 
-bash $NOVEL -o Saliva -g ${GTDB_V} -a Saliva/ANI_results.txt \
+bash $NOVEL -o Saliva -g ${GTDB_V} \
 	-m $ANALYSIS/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes \
 	-s $ANALYSIS/projet_PROVID19/Saliva/preproc/preprocessed_reads.sample.tsv
 
-bash $NOVEL -o Boreal_mosses -g ${GTDB_V} -a Boreal_mosses/ANI_results.txt \
+bash $NOVEL -o Boreal_mosses -g ${GTDB_V} \
 	-m $ANALYSIS/boreal_moss/MAG_analysis/drep_genomes/dereplicated_genomes \
 	-s $ANALYSIS/boreal_moss/preproc/preprocessed_reads.sample.tsv
 

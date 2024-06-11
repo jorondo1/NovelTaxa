@@ -78,7 +78,7 @@ source scripts/myFunctions.sh
 if [[ ! -f tmp/bac120_metadata_r220_short.tsv ]]; then
 # Make a light version of:
 curl -s -o tmp/bac120_metadata_r220.tsv.gz https://data.ace.uq.edu.au/public/gtdb/data/releases/release220/220.0/bac120_metadata_r220.tsv.gz
-zcat tmp/bac120_metadata_r220.tsv.gz | awk -F'\t' 'BEGIN {OFS="\t"} {print $1, $3, $4}' > tmp/bac120_metadata_r220_short.tsv 
+zcat tmp/bac120_metadata_r220.tsv.gz | awk -F'\t' 'BEGIN {OFS="\t"} {print $1, $2, $3}' > tmp/bac120_metadata_r220_short.tsv 
 fi
 
 cd $OUTDIR
