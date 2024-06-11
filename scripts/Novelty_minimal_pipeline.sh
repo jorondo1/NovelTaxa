@@ -117,8 +117,8 @@ fi
 if [[ ! -f tmp/ANI_results_raw.txt ]]; then
 	echo 'Calculate ANI using skANI...'
 	${SKANI} search -d ${GTDB_SKANI} -o tmp/ANI_results_raw.txt -t ${THREADS} --ql tmp/MAG_list.txt 
-fi
 else echo 'skANI results found! Skipping.'
+fi
 # Format output: 
 cat tmp/ANI_results_raw.txt | sed -e "s|${MAG_DIR}/||g" -e "s|gtdb_genomes_reps_${GTDB_V}/database/GC./.../.../.../||g" \
 	-e "s/_genomic.fna.gz//g" | awk 'BEGIN {FS=OFS="\t"} {gsub(".fa", "", $2); print}' > ANI_results.txt
