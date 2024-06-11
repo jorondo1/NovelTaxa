@@ -14,7 +14,7 @@ def main():
     parser.add_argument('-m', '--MAG_list', type=str, required=True, help='File with with full path to MAGs (one per lines)', default='tmp/MAG_list.txt')
     parser.add_argument('-c', '--checkm', type=str, required=True, help='Checkm quality report.')
     parser.add_argument('-o', '--outdir', type=str, required=True, help='output directory')
-    parser.add_argument('-g', '--gtdb', type=str, help='GTDB metadata file', default='tmp/bac120_metadata_r220_short.tsv')
+    parser.add_argument('-g', '--gtdb', type=str, required=True, help='GTDB metadata file')
     args = parser.parse_args() # Parse
 
     checkm50, ani95, ani = identifyNovel(args.ANI_results, args.checkm, args.MAG_list, args.outdir)
