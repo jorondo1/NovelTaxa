@@ -1,0 +1,16 @@
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part13.bin.20.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part17.bin.1.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part10.bin.23.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part22.bin.28.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part13.bin.32.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part2.bin.35.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part25.bin.28.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part25.bin.2.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part22.bin.37.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part17.bin.15.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part25.bin.1.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part19.bin.28.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part22.bin.19.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part25.bin.27.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part25.bin.24.fa
+/home/def-ilafores/analysis/projet_PROVID19/Saliva/MAG_analysis/drep_genomes/dereplicated_genomes/part10.bin.60.fa
