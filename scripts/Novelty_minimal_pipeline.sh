@@ -75,7 +75,7 @@ export MAGs_IDX=$(find ${SM_SK} -type f -name 'nMAGs_index*')
 curl -s -o scripts/myFunctions.sh https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh
 source scripts/myFunctions.sh
 
-[[ if ! -f tmp/bac120_metadata_r220_short.tsv ]]; then 
+if [[ ! -f tmp/bac120_metadata_r220_short.tsv ]]; then
 # Make a light version of:
 curl -s -o tmp/bac120_metadata_r220.tsv.gz https://data.ace.uq.edu.au/public/gtdb/data/releases/release220/220.0/bac120_metadata_r220.tsv.gz
 zcat tmp/bac120_metadata_r220.tsv.gz | awk -F'\t' 'BEGIN {OFS="\t"} {print $1, $3, $4}' > tmp/bac120_metadata_r220_short.tsv 
@@ -138,6 +138,10 @@ module load python/3.11.5
 python3 ${MAIN}/scripts/novel_MAGs.py -a $OUTDIR/ANI_results.txt \
 	-m $OUTDIR/tmp/MAG_list.txt -c $OUTDIR/quality_report.tsv -o tmp
 module unload
+
+##########################	
+### Identify better MAGs #
+##########################
 
 
 
