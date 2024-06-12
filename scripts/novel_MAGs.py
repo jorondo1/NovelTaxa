@@ -66,12 +66,12 @@ def myMAGsBringAllTheBoysToTheYardDamnRightItsBetterThanYours(checkm50, ani95, a
 
     # Merge both and check best value 
     compRef = redunSpec.merge(gtdb[['accession','QS_ref']], left_on='Ref_file', right_on='accession', how='left').drop(columns='Ref_file')
-    compRef.to_csv(f"{out}/betterMAGs.txt", index=False, header = True, sep='\t')
     betterMAGs = compRef[compRef['QS']>compRef['QS_ref']].copy()
     betterMAGs['increase'] = (betterMAGs['QS'] - betterMAGs['QS_ref'])/betterMAGs['QS_ref']
+    betterMAGs.to_csv(f"{out}/betterMAGs.txt", index=False, header = True, sep='\t')
     meanInc = betterMAGs['increase'].mean() * 100
     sdInc = betterMAGs['increase'].std() * 100
-    print(f"found {sum(compRef['QS'] > compRef['QS_ref'])} MAG with higher quality score (mean increase {meanInc:.1f} ± {sdInc:.1f}%)")
+    print(f"{sum(compRef['QS'] > compRef['QS_ref'])} MAG with higher quality score (mean increase {meanInc:.1f} ± {sdInc:.1f}%)")
     print(betterMAGs)
 
 if __name__ == "__main__": # Ensure function call only when script is run directly, not loaded as a module.
