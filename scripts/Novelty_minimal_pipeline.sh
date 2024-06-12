@@ -139,15 +139,18 @@ python3 ${MAIN}/scripts/novel_MAGs.py -a $OUTDIR/ANI_results.txt -g ${MAIN}/tmp/
 	-m $OUTDIR/tmp/MAG_list.txt -c $OUTDIR/quality_report.tsv -o $OUTDIR
 module unload
 
-##########################	
-### Download better MAGs #
-##########################
-
-
-
 #####################
 ### Sketch & index nMAGs
 #####################
+
+### Sketch better MAGs #
+better=($(tail -n +2 Saliva/betterMAGs.txt | awk -F'\t' '{print $4}'))
+REPS_220=${DB}/GTDB/gtdb_genomes_reps_r220
+for genome in ${better[@]}; do
+	line=$(grep $genome $REPS_220/genome_paths.tsv)
+	file=${REPS_220}/$(echo $line | awk '{print $2}')$(echo $line | awk '{print $1}')
+	echo $file >> tmp/nMAG_list.txt
+done
 
 ml apptainer
 
