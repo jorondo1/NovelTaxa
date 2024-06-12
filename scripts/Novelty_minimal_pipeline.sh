@@ -143,16 +143,19 @@ module unload
 ### Sketch & index nMAGs
 #####################
 
-### Sketch better MAGs #
-better=($(tail -n +2 $OUTDIR/betterMAGs.txt | awk -F'\t' '{print $4}'))
-REPS_220=${DB}/GTDB/gtdb_genomes_reps_r220
-for genome in ${better[@]}; do
-	line=$(grep $genome $REPS_220/genome_paths.tsv)
-if [ ! -z "$line" ]; then
-	file=${REPS_220}/$(echo $line | awk '{print $2}')$(echo $line | awk '{print $1}')
-	echo $file >> $OUTDIR/tmp/nMAG_list.txt
-fi
-done
+### Sketch better MAGs (append to list with nMAGs)
+better=($(tail -n +2 $OUTDIR/betterMAGs.txt | awk -F'\t' '{print $1}'))
+
+
+# List the genomes to remove from the index :
+# REPS_220=${DB}/GTDB/gtdb_genomes_reps_r220
+# for genome in ${better[@]}; do
+# 	line=$(grep $genome $REPS_220/genome_paths.tsv)
+# if [ ! -z "$line" ]; then
+# 	file=${REPS_220}/$(echo $line | awk '{print $2}')$(echo $line | awk '{print $1}')
+# 	echo $file >> $OUTDIR/tmp/nMAG_list.txt
+# fi
+# done
 
 ml apptainer
 
