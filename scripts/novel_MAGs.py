@@ -17,9 +17,9 @@ def main():
     parser.add_argument('-g', '--gtdb', type=str, required=True, help='GTDB metadata file')
     args = parser.parse_args() # Parse
 
-    identifyNovel(args.ANI_results, args.checkm, args.MAG_list, args.outdir, args.gtdb, args.outdir)
+    identifyNovel(args.ANI_results, args.checkm, args.MAG_list, args.outdir, args.gtdb)
 
-def identifyNovel(ani_file, checkm_file, MAG_file, out, gtdb_file, out):
+def identifyNovel(ani_file, checkm_file, MAG_file, out, gtdb_file):
     
     # Read data
     MAGs = pd.read_csv(MAG_file, sep="\t", header = None)                       # MAGs paths
@@ -67,7 +67,8 @@ def identifyNovel(ani_file, checkm_file, MAG_file, out, gtdb_file, out):
     exclude = (set(checkm50['Name'].tolist()) - set(ani95.tolist())) # MAGs excluding those with ANI >= 95%
     print(f'{len(exclude)} MAGs are potentially novel species-level MAGs with QS > 0.50.')
     
-    include = (set(betterMAGs['Name'].tolist() + set(exclude))
+    # Combine sets
+    include = set(betterMAGs['Query_file'].tolist()).union(exclude)
     nMAGs = MAGs[MAGs[0].apply(lambda x: any(s in x for s in include))]
     nMAGs.to_csv(f"{out}/nMAG_list.txt", index=False, header = False)
 
@@ -75,7 +76,6 @@ def identifyNovel(ani_file, checkm_file, MAG_file, out, gtdb_file, out):
     meanInc = betterMAGs['increase'].mean() * 100
     sdInc = betterMAGs['increase'].std() * 100
     print(f"{sum(compRef['QS'] > compRef['QS_ref'])} MAG with higher quality score (mean increase {meanInc:.1f} ± {sdInc:.1f}%)")
-    print(betterMAGs)
 
 if __name__ == "__main__": # Ensure function call only when script is run directly, not loaded as a module.
     main()
