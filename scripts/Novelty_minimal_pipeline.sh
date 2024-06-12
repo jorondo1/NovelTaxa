@@ -148,8 +148,11 @@ better=($(tail -n +2 $OUTDIR/betterMAGs.txt | awk -F'\t' '{print $4}'))
 REPS_220=${DB}/GTDB/gtdb_genomes_reps_r220
 for genome in ${better[@]}; do
 	line=$(grep $genome $REPS_220/genome_paths.tsv)
+	echo $line
+if [ -z "$line" ]; then
 	file=${REPS_220}/$(echo $line | awk '{print $2}')$(echo $line | awk '{print $1}')
 	echo $file >> tmp/nMAG_list.txt
+fi
 done
 
 ml apptainer
@@ -178,7 +181,10 @@ else
 echo 'Renaming genome sketches...'
 for file in $(find ${SM_SK}/nMAGs -type f -name '*.sig'); do
 	new_name=$(basename $file)
-	$SOURMASH sig rename $file "${new_name%.fa.sig}" -o ${SM_SK}/nMAGs/${new_name}
+	new_name=${new_name%.fa*}
+	new_name=${new_name%.fna*}
+	new_name=${new_name%_genomic*}
+	$SOURMASH sig rename $file "$new_name" -o ${SM_SK}/nMAGs/${new_name}
 done
 fi
 
