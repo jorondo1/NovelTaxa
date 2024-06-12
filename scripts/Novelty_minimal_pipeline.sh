@@ -144,9 +144,7 @@ module unload
 #####################
 
 ### Sketch better MAGs (append to list with nMAGs)
-better=($(tail -n +2 $OUTDIR/betterMAGs.txt | awk -F'\t' '{print $1}'))
-
-
+# better=($(tail -n +2 $OUTDIR/betterMAGs.txt | awk -F'\t' '{print $1}'))
 
 # List the genomes to remove from the index :
 # REPS_220=${DB}/GTDB/gtdb_genomes_reps_r220

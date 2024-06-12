@@ -66,11 +66,11 @@ def identifyNovel(ani_file, checkm_file, MAG_file, out, gtdb_file):
     # List all paths
     exclude = (set(checkm50['Name'].tolist()) - set(ani95.tolist())) # MAGs excluding those with ANI >= 95%
     print(f'{len(exclude)} MAGs are potentially novel species-level MAGs with QS > 0.50.')
-    
+    print(MAGs)
     # Combine sets
     include = set(betterMAGs['Query_file'].tolist()).union(exclude)
     nMAGs = MAGs[MAGs[0].apply(lambda x: any(s in x for s in include))]
-    nMAGs.to_csv(f"{out}/nMAG_list.txt", index=False, header = False)
+    nMAGs.to_csv(f"{out}/tmp/nMAG_list.txt", index=False, header = False)
 
     #Print stats
     meanInc = betterMAGs['increase'].mean() * 100
