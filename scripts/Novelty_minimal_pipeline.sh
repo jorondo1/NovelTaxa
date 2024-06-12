@@ -136,11 +136,11 @@ cat tmp/ANI_results_raw.txt | sed -e "s|${MAG_DIR}/||g" -e "s|gtdb_genomes_reps_
 echo 'Identifying novel MAGs...'
 module load python/3.11.5
 python3 ${MAIN}/scripts/novel_MAGs.py -a $OUTDIR/ANI_results.txt -g ${MAIN}/tmp/bac120_metadata_r220_short.tsv \
-	-m $OUTDIR/tmp/MAG_list.txt -c $OUTDIR/quality_report.tsv -o tmp
+	-m $OUTDIR/tmp/MAG_list.txt -c $OUTDIR/quality_report.tsv -o $OUTDIR
 module unload
 
 ##########################	
-### Identify better MAGs #
+### Download better MAGs #
 ##########################
 
 
