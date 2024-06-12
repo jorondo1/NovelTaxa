@@ -11,12 +11,12 @@ GCF_900112425.1	Brown_P.bin.5	90.63	16.77	34.96	NZ_FOLP01000066.1 Variovorax sp.
 GCF_900115685.1	Brown_P.bin.5	90.56	20.07	35.42	NZ_FOXJ01000014.1 Variovorax sp. 770b2, whole genome shotgun sequence	Brown_NODE_307_length_12951_cov_4.276442
 GCF_016405905.1	Brown_P.bin.5	90.54	19.77	32.14	NZ_JAEFCB010000010.1 Variovorax sp. IB41 NODE_10_length_258874_cov_59.240036, whole genome shotgun sequence	Brown_NODE_307_length_12951_cov_4.276442
 GCF_003852515.1	Brown_P.bin.5	90.51	17.94	30.45	NZ_QAJK01000001.1 Variovorax sp. KBW07 KBW7_CAGATC_contig_1, whole genome shotgun sequence	Brown_NODE_307_length_12951_cov_4.276442
-GCF_024734665.1	Brown_P.bin.5	90.51	19.70	34.02	NZ_CP102931.1 Variovorax paradoxus strain JBCE486 chromosome, complete genome	Brown_NODE_307_length_12951_cov_4.276442
 GCF_022009635.1	Brown_P.bin.5	90.51	17.75	33.43	NZ_CP091716.1 Variovorax paradoxus strain IPSP_MA_2 chromosome	Brown_NODE_307_length_12951_cov_4.276442
+GCF_024734665.1	Brown_P.bin.5	90.51	19.70	34.02	NZ_CP102931.1 Variovorax paradoxus strain JBCE486 chromosome, complete genome	Brown_NODE_307_length_12951_cov_4.276442
 GCF_014302995.1	Brown_P.bin.5	90.51	20.06	35.10	NZ_CP060295.1 Variovorax sp. PAMC26660 chromosome, complete genome	Brown_NODE_307_length_12951_cov_4.276442
 GCF_001591345.1	Brown_P.bin.5	90.46	16.98	27.03	NZ_BCUS01000001.1 Variovorax boronicumulans NBRC 103145, whole genome shotgun sequence	Brown_NODE_307_length_12951_cov_4.276442
-GCF_003019815.1	Brown_P.bin.5	90.45	19.20	31.89	NZ_CP027773.1 Variovorax sp. PMC12 chromosome 1, complete sequence	Brown_NODE_307_length_12951_cov_4.276442
 GCF_017161115.1	Brown_P.bin.5	90.45	19.47	33.04	NZ_CP046508.1 Variovorax sp. RKNM96 chromosome, complete genome	Brown_NODE_307_length_12951_cov_4.276442
+GCF_003019815.1	Brown_P.bin.5	90.45	19.20	31.89	NZ_CP027773.1 Variovorax sp. PMC12 chromosome 1, complete sequence	Brown_NODE_307_length_12951_cov_4.276442
 GCF_001425205.1	Brown_P.bin.5	90.41	18.98	27.25	NZ_LMDW01000001.1 Variovorax sp. Root411 contig_1, whole genome shotgun sequence	Brown_NODE_307_length_12951_cov_4.276442
 GCF_002754375.1	Brown_P.bin.5	90.40	16.42	25.83	NZ_PEFF01000001.1 Variovorax sp. 54 Ga0181127_11, whole genome shotgun sequence	Brown_NODE_307_length_12951_cov_4.276442
 GCF_009498455.1	Brown_P.bin.5	90.36	15.81	27.28	NZ_CP045644.1 Variovorax paradoxus strain 5C-2 chromosome, complete genome	Brown_NODE_307_length_12951_cov_4.276442
@@ -168,8 +168,8 @@ GCF_020829685.1	Green_AD.bin.2	92.17	20.90	27.14	NZ_JAIVFR010001000.1 Nostoc sp.
 GCF_020829665.1	Green_AD.bin.2	90.57	23.31	34.82	NZ_JAIVFT010000099.1 Nostoc sp. CHAB 5824 NODE_100_length_2603_cov_1.607835, whole genome shotgun sequence	Green_NODE_6_length_29705_cov_7.743305
 GCA_019359245.1	Green_AD.bin.2	90.46	19.79	31.72	JAHHHR010000039.1 MAG: Nostoc desertorum CM1-VF14 scaffold_104_c1, whole genome shotgun sequence	Green_NODE_6_length_29705_cov_7.743305
 GCF_014698795.1	Green_AD.bin.2	90.28	19.62	32.64	NZ_JACJTR010000001.1 Nostoc sp. FACHB-892 contig1, whole genome shotgun sequence	Green_NODE_6_length_29705_cov_7.743305
-GCA_019359215.1	Green_AD.bin.2	90.27	18.75	30.61	JAHHHS010000032.1 MAG: Nostoc indistinguendum CM1-VF10 scaffold_101_c1, whole genome shotgun sequence	Green_NODE_6_length_29705_cov_7.743305
 GCF_014698505.1	Green_AD.bin.2	90.27	19.75	32.26	NZ_JACJTD010000001.1 Nostoc foliaceum FACHB-393 contig1, whole genome shotgun sequence	Green_NODE_6_length_29705_cov_7.743305
+GCA_019359215.1	Green_AD.bin.2	90.27	18.75	30.61	JAHHHS010000032.1 MAG: Nostoc indistinguendum CM1-VF10 scaffold_101_c1, whole genome shotgun sequence	Green_NODE_6_length_29705_cov_7.743305
 GCA_015206945.1	Green_AD.bin.2	89.78	15.49	23.91	JADEXV010000067.1 Nostocales cyanobacterium LEGE 12452 NODE_100_length_33014_cov_4.53295, whole genome shotgun sequence	Green_NODE_6_length_29705_cov_7.743305
 GCF_023734775.1	Green_AD.bin.2	89.74	16.71	22.79	NZ_AP025732.1 Nostoc cf. commune SO-36 chromosome, complete genome	Green_NODE_6_length_29705_cov_7.743305
 GCF_015206895.1	Green_AD.bin.2	89.73	15.75	25.57	NZ_JADEXU010000372.1 Nostoc sp. LEGE 12450 NODE_1008_length_1984_cov_7.55143, whole genome shotgun sequence	Green_NODE_6_length_29705_cov_7.743305
