@@ -177,6 +177,7 @@ else
 	--output-dir ${SM_SK}/nMAGs
 # it fails, check if there are empty returns at the end of nMAG_list.txt
 #### Eventually, use 'branchwater multisketch'
+fi
 
 # Rename novel genomes signatures (otherwise the whole name of the first contig is used) 
 echo 'Renaming genome sketches...'
@@ -187,7 +188,6 @@ for file in $(find ${SM_SK}/nMAGs -type f -name '*.sig'); do
 	new_name=${new_name%_genomic*}
 	$SOURMASH sig rename $file "$new_name" -o ${SM_SK}/nMAGs/${new_name}
 done
-fi
 
 # Create an index 
 if [[ ! -f ${SM_SK}/nMAGs_index.sbt.zip ]]; then

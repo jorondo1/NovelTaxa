@@ -9,6 +9,7 @@
 #SBATCH -n 2
 #SBATCH -A def-ilafores
 #SBATCH -J sourmash
+start_time=$(date +%s)
 
 newgrp def-ilafores
 export ILAFORES=${ANCHOR}${ILAFORES}
@@ -57,4 +58,6 @@ else
 	echo "Gather output found. Skipping"
 fi
 
-echo "Done !"
+echo "Done ! Elapsed time:"
+end_time=$(date +%s)
+echo $((end_time - start_time))
