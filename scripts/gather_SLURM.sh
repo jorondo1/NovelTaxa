@@ -47,7 +47,9 @@ if [[ ! -f ${OUTDIR}/${SAM_ID}_${GTDB_V}_gather.csv ]]; then
 else
 	echo "Gather output found. Skipping..."
 fi
-
+echo $SIG
+echo $MAGs_IDX
+echo $SM_DB
 if [[ ! -f ${OUTDIR}/${SAM_ID}_custom_gather.csv ]]; then
 	echo "Gather again but add the novel MAGs"
 	$sourmash gather $SIG ${MAGs_IDX} ${SM_DB} -o ${OUTDIR}/${SAM_ID}_custom_gather.csv
