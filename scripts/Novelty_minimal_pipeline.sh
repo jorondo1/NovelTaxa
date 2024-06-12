@@ -149,7 +149,7 @@ REPS_220=${DB}/GTDB/gtdb_genomes_reps_r220
 for genome in ${better[@]}; do
 	line=$(grep $genome $REPS_220/genome_paths.tsv)
 	echo $line
-if [ -z "$line" ]; then
+if [ ! -z "$line" ]; then
 	file=${REPS_220}/$(echo $line | awk '{print $2}')$(echo $line | awk '{print $1}')
 	echo $file >> tmp/nMAG_list.txt
 fi
