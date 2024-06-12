@@ -144,7 +144,7 @@ module unload
 #####################
 
 ### Sketch better MAGs #
-better=($(tail -n +2 Saliva/betterMAGs.txt | awk -F'\t' '{print $4}'))
+better=($(tail -n +2 $OUTDIR/betterMAGs.txt | awk -F'\t' '{print $4}'))
 REPS_220=${DB}/GTDB/gtdb_genomes_reps_r220
 for genome in ${better[@]}; do
 	line=$(grep $genome $REPS_220/genome_paths.tsv)
