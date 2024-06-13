@@ -33,13 +33,17 @@ cntm.df %>% group_by(Dataset, db) %>%
 # Containment increase after adding MAGs
 cntmDiff <- cntm.df %>% 
   pivot_wider(names_from = db, values_from = cntm) %>% 
-  mutate(fold_inc = !!sym(dbNames[3])/!!sym(dbNames[1]),
-         diff = !!sym(dbNames[3]) - !!sym(dbNames[1]))
+  mutate(fold_inc_12 = !!sym(dbNames[2])/!!sym(dbNames[1]),
+         diff_12 = !!sym(dbNames[2]) - !!sym(dbNames[1]),
+         fold_inc_23 = !!sym(dbNames[3])/!!sym(dbNames[2]),
+         diff_23 = !!sym(dbNames[3]) - !!sym(dbNames[2]))
 
 message('Mean fold increase vs. default')
 cntmDiff %>% group_by(Dataset) %>% # Summarise increase :
-  summarise(mean_inc = mean(fold_inc),
-            sd_inc = sd(fold_inc)) %>% as.data.frame %>% print
+  summarise(mean_inc_12 = mean(fold_inc_12),
+            sd_inc_12 = sd(fold_inc_12),
+            mean_inc_23 = mean(fold_inc_23),
+            sd_inc_23 = sd(fold_inc_23)) %>% as.data.frame %>% print
 
 # Confidence interval in mean cntm increase
 # within which range do 90 % of sample increases fall with 95% confidence ?
@@ -64,17 +68,20 @@ cohenD <- function(df_long, ds) {
     summarise(mean = mean(cntm), var = var(cntm), n=n())
   if (meanSD$n[1] != meanSD$n[2]) {message('Warning! Datasets have different number of obs.')}
   n <- meanSD$n[1] # both datasets should have same n !
-  pooledSD <- sqrt(((n-1) * (meanSD$var[1]) + (n-1) * (meanSD$var[2]))/(2*n-2))
-  (meanSD$mean[2] - meanSD$mean[1])/pooledSD # Cohen's d
+  pooledSD <- sqrt(((n-1) * (meanSD$var[1]) + (n-1) * (meanSD$var[3]))/(2*n-2))
+  (meanSD$mean[3] - meanSD$mean[1])/pooledSD # Cohen's d
 }
 
 message(paste("Boreal mosses: ",cohenD(cntm.df, 'Boreal_mosses')))
 message(paste("Saliva: ", cohenD(cntm.df, 'Saliva')))
 
-### PAIRDE COHEN'S D
+### PAIRED COHEN'S D
 cohenD_p <- function(df_wide, ds) {
   df <- df_wide %>% filter(Dataset == ds)
-  mean(df$diff)/sd(df$diff)
+  d_12 <- mean(df$diff_12)/sd(df$diff_12)
+  d_23 <- mean(df$diff_23)/sd(df$diff_23)
+  message(paste("Cohen's paired d between scenario 1 and 2: ",format(d_12, digits=3)))
+  message(paste("Cohen's paired d between scenario 2 and 3: ",format(d_23, digits=3)))
 }
 
 cohenD_p(cntmDiff, 'Boreal_mosses')
@@ -139,16 +146,16 @@ div_long %>% group_by(Microbiome, db) %>% # Summarise diversity
             varDiv = var(Shannon)) %>% as.data.frame %>% print
 
 # Linear regression Shannon - Host moss species
-lm_r214 <- moss_div_long %>% 
-  filter(db == dbNames[1]) %>% 
+lm_r214 <- div_long %>% 
+  filter(db == dbNames[1] & Microbiome == 'Boreal_mosses') %>% 
   lm(Shannon ~ Host, data = .) 
 
-lm_nMAGs <- moss_div_long %>% 
-  filter(db == dbNames[2]) %>% 
+lm_nMAGs <- div_long %>% 
+  filter(db == dbNames[2] & Microbiome == 'Boreal_mosses') %>% 
   lm(Shannon ~ Host, data = .) 
 
-lm_nMAGsBetter <- moss_div_long %>% 
-  filter(db == dbNames[3]) %>% 
+lm_nMAGsBetter <- div_long %>% 
+  filter(db == dbNames[3] & Microbiome == 'Boreal_mosses') %>% 
   lm(Shannon ~ Host, data = .) 
 
 summary(lm_r214) %>%  print # 6% variance explained
@@ -162,10 +169,10 @@ residuals(lm_nMAGs) %>% shapiro.test # normal-ish p=0.04
 residuals(lm_r214) %>% shapiro.test # normal p=0.50
 
 # non-parametric supports
-moss_div_long %>% 
+div_long %>% 
   filter(db == dbNames[1]) %>% 
   kruskal.test(Shannon ~ Host, data = .)
 
-moss_div_long %>% 
+div_long %>% 
   filter(db == dbNames[3]) %>% 
   kruskal.test(Shannon ~ Host, data = .)
