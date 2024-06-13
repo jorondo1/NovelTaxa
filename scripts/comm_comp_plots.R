@@ -1,68 +1,61 @@
 library(pacman)
 p_load(tidyverse, phyloseq, magrittr, foreach, iterators, parallel,
-       extrafont, showtext)
+       extrafont, showtext, patchwork)
 
 source('scripts/comm_comp_data.R')
 font_add(family = "Georgia", regular = "/System/Library/Fonts/Supplemental/Georgia.ttf")
-custom_theme <- theme_light(base_size = 28, 
-                            base_family = 'Georgia')
+custom_theme <- theme_light(base_size = 28, base_family = 'Georgia')
+dbCols <- c('#D4FADD','#00A759', '#356946')
+mossCols <- c('#00A4F1', '#0070B8')
 showtext_auto()
 
 ### Containment across databases and projects
-cntm.df %>% # Format db and dataset names
+p1 <- cntm.df %>% # Format db and dataset names
   mutate(Dataset = case_when(Dataset == "Boreal_mosses" ~ "Boreal mosses",
                              Dataset == "Saliva" ~ "Human saliva"),
          db = case_when(db == dbNames[1] ~ 'Default GTDB r214',
-                        db == dbNames[2] ~ 'r214 with nMAGs')) %>% 
+                        db == dbNames[2] ~ 'with nMAGs',
+                        db == dbNames[3] ~ 'with nMAGs and better MAGs')) %>% 
   # Plot !
   ggplot(aes(x = db, y = cntm)) +
   geom_violin(aes(fill=db)) + # so dots don't appear in the legend!
-  geom_jitter(alpha = 1, width=0.1,size = 1) + 
-  facet_wrap(~Dataset, scales= 'free', nrow=2) +
+  #geom_jitter(alpha = 1, width=0.08, size = 1) + 
   custom_theme +
+  facet_wrap(~Dataset, scales= 'free', nrow=2) +
   labs(y = 'Sample k-mer containment', x = '', fill = '') +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        legend.position = 'none',
-        axis.text.y = element_text(size = 12)) 
-
-ggsave('figures/cntm.pdf',  bg = 'white', 
-       width = 20, height = 45, units = 'cm')
-
-### Containment increase from adding nMAGs (Mosses only)
-cntmDiff %>% filter(Dataset == 'Boreal_mosses') %>% 
-  ggplot(aes(x = "Boreal moss", y = fold_inc)) +
-  geom_violin() + geom_jitter(alpha =0.5, width = 0.2) +
-  labs(y = 'Fold increase in sample k-mers containment', x = 'Microbiome') +
-  scale_y_continuous(limits = c(0, NA), breaks = seq(0, max(cntmDiff$fold_inc), by = 2))  # Set minimum y value and increments
-
+  scale_fill_manual(values = dbCols)
 
 ### Diversity by host across database 
 moss_div_long_formatted <- moss_div_long %>% # Format db names
+  filter(db != dbNames[3]) %>% # bMAGs were not relevant for mosses
   mutate(db = factor(db, levels = dbNames),
          db = case_when(db == dbNames[1] ~ 'Default GTDB r214',
-                        db == dbNames[2] ~ 'r214 with nMAGs')) 
+                        db == dbNames[2] ~ 'with nMAGs')) 
 
 ### Sample-wise change in diversity 
-moss_div_long_formatted %>% 
-  mutate(Title = 'Changes in diversity (Boreal mosses)') %>% 
+p2 <- moss_div_long_formatted %>% 
+  mutate(Title = 'Changes in diversity (Boreal mosses)') %>% # title for facet wrap
   ggplot(aes(x = db, y = Shannon)) +
-    geom_boxplot(aes(fill = db)) +
-    geom_point(alpha = 0.5) + geom_line(aes(group = Sample), alpha=0.3) + 
-    custom_theme +
-    facet_wrap(~Title) +
-    labs(y = 'Shannon diversity') +
-    #scale_fill_manual(values = MetBrewer::MetPalettes$VanGogh2[[1]][c(5,6)]) +
-    #scale_fill_manual(values = MetBrewer::met.brewer('Klimt', n=2, override.order = TRUE)) +
-    theme(axis.text.x = element_blank(),
-          axis.title.x = element_blank(),
-          legend.position = 'bottom',
-          legend.title = element_blank(),
-          legend.margin = margin(t = -10),
-          axis.text.y = element_text(size = 12)) 
+  geom_boxplot(aes(fill = db)) +
+  geom_point(alpha = 0.5) + geom_line(aes(group = Sample), alpha=0.3) + 
+  custom_theme +
+  facet_wrap(~Title) +
+  labs(y = 'Shannon diversity') +
+  scale_fill_manual(values = dbCols[1:2]) +
+  guides(fill = 'none') # remove legend altogether
 
-ggsave('figures/div_var.pdf',  bg = 'white', 
-       width = 20, height = 45, units = 'cm')
+
+p1 + p2 + plot_layout(guides = "collect") &
+  theme(legend.position = 'bottom',
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        legend.margin = margin(b = -10),
+        #legend.key.height = unit(1.2, 'cm'),
+        axis.text.y = element_text(size = 18, colour = 'black'),
+        strip.background = element_rect(fill = "grey50"))
+
+ggsave('figures/cntm_div.pdf',  bg = 'white', 
+       width = 40, height = 50, units = 'cm')
 
 # Plot !
 moss_div_long_formatted %>% 
@@ -109,3 +102,12 @@ genomes %>%
 ggsave('figures/biomes.pdf',  bg = 'white', 
        width = 45, height = 20, units = 'cm')
 
+
+
+# ### Containment increase from adding nMAGs (Mosses only)
+# cntmDiff %>% 
+#   ggplot(aes(x = Dataset, y = fold_inc, fill = Dataset)) +
+#   geom_boxplot() + 
+#   theme_minimal() +
+#   labs(y = 'Fold increase in sample k-mers containment', x = 'Dataset') +
+#   scale_y_continuous(limits = c(0, NA), breaks = seq(0, max(cntmDiff$fold_inc), by = 2))  # Set minimum y value and increments

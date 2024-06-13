@@ -69,8 +69,6 @@ fi
 # Setup project directories
 mkdir -p scripts ${SM_SK}/nMAGs ${OUTDIR}/tmp/logs ${OUTDIR}/tmp/checkm2 ${OUTDIR}/sourmash tmp/
 
-export MAGs_IDX=$(find ${SM_SK} -type f -name 'nMAGs_index*')
-
 # gather output post-processing functions
 curl -s -o scripts/myFunctions.sh https://raw.githubusercontent.com/jorondo1/misc_scripts/main/myFunctions.sh
 source scripts/myFunctions.sh
@@ -142,6 +140,11 @@ module unload
 #####################
 ### Sketch & index nMAGs
 #####################
+
+export MAGs_IDX=$(find ${SM_SK} -type f -name 'nMAGs_index*')
+
+# export nMAGs_IDX=$(find ${SM_SK} -type f -name 'nMAGs_index*')
+# export bMAGs_IDX=$(find ${SM_SK} -type f -name 'bMAGs_index*')
 
 ### Sketch better MAGs (append to list with nMAGs)
 # better=($(tail -n +2 $OUTDIR/betterMAGs.txt | awk -F'\t' '{print $1}'))

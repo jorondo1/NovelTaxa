@@ -39,6 +39,10 @@ def identifyNovel(ani_file, checkm_file, MAG_file, out, gtdb_file):
     checkm50 = checkm.query('QS>=50.00')[['Name','QS']]
     print(f"{len(checkm50)} MAGs have quality score (QS) over 0.50.")
     
+    exclude = (set(checkm50['Name'].tolist()) - set(ani95.tolist())) # MAGs excluding those with ANI >= 95%
+    nMAGs = MAGs[MAGs[0].apply(lambda x: any(s in x for s in exclude))]
+    nMAGs.to_csv(f"{out}/tmp/nMAG_list.txt", index=False, header = False)
+    
     # myMAGsBringAllTheBoysToTheYardDamnRightItsBetterThanYours
     
     #  Find the Best MAGs with ANI >=95%
@@ -64,13 +68,12 @@ def identifyNovel(ani_file, checkm_file, MAG_file, out, gtdb_file):
     betterMAGs.to_csv(f"{out}/betterMAGs.txt", index=False, header = True, sep='\t')
     
     # List all paths
-    exclude = (set(checkm50['Name'].tolist()) - set(ani95.tolist())) # MAGs excluding those with ANI >= 95%
     print(f'{len(exclude)} MAGs are potentially novel species-level MAGs with QS > 0.50.')
     print(MAGs)
     # Combine sets
-    include = set(betterMAGs['Query_file'].tolist()).union(exclude)
-    nMAGs = MAGs[MAGs[0].apply(lambda x: any(s in x for s in include))]
-    nMAGs.to_csv(f"{out}/tmp/nMAG_list.txt", index=False, header = False)
+    include = (betterMAGs['Query_file'].tolist())
+    bMAGs = MAGs[MAGs[0].apply(lambda x: any(s in x for s in include))]
+    bMAGs.to_csv(f"{out}/tmp/bMAG_list.txt", index=False, header = False)
 
     #Print stats
     meanInc = betterMAGs['increase'].mean() * 100

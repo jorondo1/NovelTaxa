@@ -20,7 +20,8 @@ project_paths <- list.dirs(path='.', recursive=FALSE, full.names=TRUE) %>%
 ###############################################
 cntm.df <- map_dfr(project_paths, 
                    ~ read_label(.x , columns = c('Sample', 'db', 'cntm'))) 
-dbNames <- cntm.df %$% db %>% unique %>% rev # extract db names
+#dbNames <- cntm.df %$% db %>% unique %>% rev # extract db names
+dbNames <- c('r214', 'nMAGs', 'nMAGsBetter')
 cntm.df %<>% mutate(db = factor(db, levels = dbNames))# Reorder factors 
 
 message('Summary of containment across databases')
@@ -32,9 +33,10 @@ cntm.df %>% group_by(Dataset, db) %>%
 # Containment increase after adding MAGs
 cntmDiff <- cntm.df %>% 
   pivot_wider(names_from = db, values_from = cntm) %>% 
-  mutate(fold_inc = !!sym(dbNames[2])/!!sym(dbNames[1]))
+  mutate(fold_inc = !!sym(dbNames[3])/!!sym(dbNames[1]),
+         diff = !!sym(dbNames[3]) - !!sym(dbNames[1]))
 
-message('Mean fold increase by project')
+message('Mean fold increase vs. default')
 cntmDiff %>% group_by(Dataset) %>% # Summarise increase :
   summarise(mean_inc = mean(fold_inc),
             sd_inc = sd(fold_inc)) %>% as.data.frame %>% print
@@ -54,74 +56,109 @@ print(bootstrap_results$t0) # between 2.1 and 9.1 fold increase
 #boot.ci(bootstrap_results, type = "perc", index = 1) # CI 95% (default)
 #boot.ci(bootstrap_results, type = "perc", index = 2)
 
+### COHEN'S D
+message("Cohen's d - difference in terms of standard deviations from the mean")
+cohenD <- function(df_long, ds) {
+  meanSD <- df_long %>% filter(Dataset == ds) %>% 
+    group_by(db) %>% 
+    summarise(mean = mean(cntm), var = var(cntm), n=n())
+  if (meanSD$n[1] != meanSD$n[2]) {message('Warning! Datasets have different number of obs.')}
+  n <- meanSD$n[1] # both datasets should have same n !
+  pooledSD <- sqrt(((n-1) * (meanSD$var[1]) + (n-1) * (meanSD$var[2]))/(2*n-2))
+  (meanSD$mean[2] - meanSD$mean[1])/pooledSD # Cohen's d
+}
+
+message(paste("Boreal mosses: ",cohenD(cntm.df, 'Boreal_mosses')))
+message(paste("Saliva: ", cohenD(cntm.df, 'Saliva')))
+
+### PAIRDE COHEN'S D
+cohenD_p <- function(df_wide, ds) {
+  df <- df_wide %>% filter(Dataset == ds)
+  mean(df$diff)/sd(df$diff)
+}
+
+cohenD_p(cntmDiff, 'Boreal_mosses')
+cohenD_p(cntmDiff, 'Saliva')
+
 ###################
 # Alpha diversity #
 ###################
+
+# Import moss project metadata
+moss_sam <- readRDS(url("https://github.com/jorondo1/borealMoss/raw/main/data/R_out/mossMAGs.RDS",
+                       method="libcurl")) %>% sample_data %>% 
+  data.frame(Microbiome='Boreal_mosses') %>% rownames_to_column('Sample') %>% 
+  dplyr::select(Sample, Compartment, Host, Location) 
 
 # Parse Sourmash gather output 
 SM_out <- list()
 for (p in project_paths) {
   for (db in dbNames) {
-    name <- basename(p) %>% paste0('_', db)
-    SM_out[[name]] <- parse_SM(paste0(p, "/sourmash/", "*", db, "_gather.csv"))
+    SM_out[[basename(p)]][[db]] <- parse_SM(paste0(p, "/sourmash/", "*", db, "_gather.csv"))
   }
 }
 
-# Import moss project metadata
-moss.ps <- readRDS(url("https://github.com/jorondo1/borealMoss/raw/main/data/R_out/mossMAGs.RDS",
-           method="libcurl"))
+# Dummy saliva metadata for phyloseq functions
+saliva_sam <- tibble(
+  Sample=colnames(SM_out$Saliva$r214),
+  V1=1) 
+  
+# Create df with diversity for each dataset
+Boreal_moss_div <- lapply(SM_out$Boreal_mosses, div_wrapper, 
+       meta.mx = moss_sam %>% column_to_rownames('Sample')) %>% 
+  do.call(cbind, .) %>% as.data.frame %>% 
+  rownames_to_column('Sample') %>% 
+  mutate(Microbiome = 'Boreal_mosses')
 
-# Phyloseq objects 
-moss_custom.ps <- phyloseq(otu_table(SM_out$Boreal_mosses_custom, taxa_are_rows = TRUE), 
-                           sample_data(moss.ps@sam_data)) 
+Saliva_div <- lapply(SM_out$Saliva, div_wrapper, 
+                     meta.mx = saliva_sam %>% column_to_rownames('Sample') %>% as.data.frame) %>% 
+  do.call(cbind, .)%>% as.data.frame %>% 
+  rownames_to_column('Sample') %>% 
+  mutate(Microbiome = 'Saliva')
 
-moss_r214.ps <- phyloseq(otu_table(SM_out$Boreal_mosses_r214, taxa_are_rows = TRUE), 
-                          sample_data(moss.ps@sam_data)) 
+# lapply(names(SM_out), function(Microbiome) {
+#   div <- lapply(SM_out[[Microbiome]])
+# })
 
-# Rarefy + compute alpha-diversity for both datasets
-moss_div = data.frame(
-  V1 = rarefy_even_depth2(moss_r214.ps, verbose = FALSE) %>% # custom fct
-    estimate_diversity(index = 'Shannon'), # custom fct
-  V2 = rarefy_even_depth2(moss_custom.ps, verbose = FALSE) %>% 
-    estimate_diversity(index = 'Shannon')
-  ) %>% setNames(dbNames) %>% # var names
-  rownames_to_column("Sample")
+# # pull moss sample data
+# sample_data <- moss_custom.ps@sam_data %>% data.frame %>% rownames_to_column("Sample")
 
-# pull sample data
-sample_data <- moss_custom.ps@sam_data %>% data.frame %>% rownames_to_column("Sample")
 # Long version of df for stat tests, add metadata :
-moss_div_long <- moss_div %>% 
+div_long <- rbind(Saliva_div, Boreal_moss_div) %>% 
   pivot_longer(
     values_to = 'Shannon',
     names_to = 'db',
-    cols = c(dbNames[2], dbNames[1])) %>% 
-  left_join(dplyr::select(sample_data, Sample, Compartment, Host, Location), 
-            by = "Sample") 
+    cols = all_of(dbNames)) %>% 
+  #MOss data
+  left_join(moss_sam, by = "Sample") %>% 
+  left_join(saliva_sam, by = "Sample")
 
 message('Mean and variance of diversity across db:')
-moss_div_long %>% group_by(db) %>% # Summarise diversity 
+div_long %>% group_by(Microbiome, db) %>% # Summarise diversity 
   summarise(meanDiv = mean(Shannon),
             varDiv = var(Shannon)) %>% as.data.frame %>% print
-
-moss_div %>% mutate(delta_div = (custom-r214)/r214) %>% 
-  summarise(mean = mean(delta_div),
-            sd = sd(delta_div))
 
 # Linear regression Shannon - Host moss species
 lm_r214 <- moss_div_long %>% 
   filter(db == dbNames[1]) %>% 
   lm(Shannon ~ Host, data = .) 
 
-lm_custom <- moss_div_long %>% 
+lm_nMAGs <- moss_div_long %>% 
   filter(db == dbNames[2]) %>% 
+  lm(Shannon ~ Host, data = .) 
+
+lm_nMAGsBetter <- moss_div_long %>% 
+  filter(db == dbNames[3]) %>% 
   lm(Shannon ~ Host, data = .) 
 
 summary(lm_r214) %>%  print # 6% variance explained
 aov(lm_r214) %>% summary # barely significant difference
-summary(lm_custom) %>% print # 20% variance explained
-aov(lm_custom) %>% summary # highly significant difference
+summary(lm_nMAGs) %>% print # 20% variance explained
+aov(lm_nMAGs) %>% summary # highly significant difference
+summary(lm_nMAGsBetter) %>% print # 20% variance explained
+aov(lm_nMAGsBetter) %>% summary # highly significant difference
 
-residuals(lm_custom) %>% shapiro.test # normal-ish p=0.04
+residuals(lm_nMAGs) %>% shapiro.test # normal-ish p=0.04
 residuals(lm_r214) %>% shapiro.test # normal p=0.50
 
 # non-parametric supports
@@ -130,5 +167,5 @@ moss_div_long %>%
   kruskal.test(Shannon ~ Host, data = .)
 
 moss_div_long %>% 
-  filter(db == dbNames[2]) %>% 
+  filter(db == dbNames[3]) %>% 
   kruskal.test(Shannon ~ Host, data = .)
