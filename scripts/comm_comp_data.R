@@ -54,7 +54,7 @@ quantile_function <- function(data, indices) {
 }
 message('90% of samples fold-increases are within this range (95% confidence):')
 # bootstrap
-finc <- cntmDiff %>% filter(Dataset == 'Boreal_mosses') %$% fold_inc
+finc <- cntmDiff %>% filter(Dataset == 'Boreal_mosses') %$% fold_inc_12
 bootstrap_results <- boot(finc, statistic = quantile_function, R = 1000)
 print(bootstrap_results$t0) # between 2.1 and 9.1 fold increase
 #boot.ci(bootstrap_results, type = "perc", index = 1) # CI 95% (default)

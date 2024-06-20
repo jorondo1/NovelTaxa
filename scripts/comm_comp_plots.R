@@ -1,10 +1,9 @@
 library(pacman)
 p_load(tidyverse, phyloseq, magrittr, foreach, iterators, parallel,
-       extrafont, showtext, patchwork)
+       extrafont, showtext, patchwork, ggrepel)
 
 source('scripts/comm_comp_data.R')
-font_add(family = "Georgia", regular = "/System/Library/Fonts/Supplemental/Georgia.ttf")
-custom_theme <- theme_light(base_size = 28, base_family = 'Georgia')
+custom_theme <- theme_light(base_size = 34)
 dbCols <- c('#D4FADD','#00A759', '#356946')
 mossCols <- c('#00A4F1', '#0070B8')
 showtext_auto()
@@ -57,12 +56,13 @@ p1 + theme(plot.margin = unit(c(0,45,0,0), "pt")) + p2 +
         legend.key.height = unit(1.2, 'cm'),
         legend.key.width = unit(1.2, 'cm'),
         axis.text.y = element_text(size = 18, colour = 'black'),
-        strip.background = element_rect(fill = "grey50")) 
+        strip.background = element_rect(fill = "grey50"),
+        strip.text = element_text(face = 'bold')) 
 
 ggsave('figures/cntm_div.pdf',  bg = 'white', 
        width = 40, height = 50, units = 'cm')
 
-# Plot 
+# Plot diversity changes
 div_long_formatted %>% 
   filter(Microbiome=='Boreal mosses') %>% 
   ggplot(aes(x = db, y = Shannon, fill = Host)) +
@@ -70,8 +70,8 @@ div_long_formatted %>%
     facet_wrap(~db, scales = "free", nrow = 2) + 
     labs(y = 'Shannon diversity') +
     custom_theme +
-    scale_fill_manual(values = MetBrewer::met.brewer('VanGogh2', n=5, direction = 1),
-                      labels = c("Dicranum undulatum", "Polytrichum commune", "P. juniperinum", "P. piliferum")) +
+    scale_fill_manual(values = c("#D87A00","#FF5552", "#FFE081", "#469aac"),
+                      labels = c("D. undulatum", "P. commune", "P. juniperinum", "P. piliferum")) +
     theme(axis.text.x = element_blank(),
           legend.position = 'bottom',
           legend.title = element_blank(),
@@ -79,32 +79,55 @@ div_long_formatted %>%
           axis.text.y = element_text(size = 18, colour = 'black'),
           axis.title.x = element_blank(),
           legend.key.height = unit(1.2, 'cm'),
-          strip.background = element_rect(fill = "grey50")) +
+          strip.background = element_rect(fill = "grey50"), # facet_wrap header
+          strip.text = element_text(face = 'bold')) +
     guides(fill = guide_legend(nrow = 2))
 
 ggsave('figures/div.pdf',  bg = 'white', 
        width = 20, height = 50, units = 'cm')
 
+###############################
+# BIOME REPRESENTATION PLOT ###
+###############################
+biomes <- read_csv('figures/Biome.csv')
+max_split <- max(sapply(strsplit(biomes$lineage, ':'), length))
 
-# BIOME REPRESENTATION PLOT
-genomes <- read_csv('figures/GenomeCatalogue.csv') %>% 
-  select(name, unclustered_genome_count) %>% 
-  mutate(count = unclustered_genome_count/sum(unclustered_genome_count),
-         .keep='unused',
-         name = case_when(name == 'Unified Human Gastrointestinal Genome (UHGG) v2.0.2' ~ 'Unified Human Gastrointestinal \nGenome (UHGG) v2.0.2', TRUE ~ name))
+# Split lineages and subset
+biomes %<>%
+  separate(lineage, into = paste0("V", 1:max_split), sep = ":", fill = 'right') %>%
+  select(-V1) %>% 
+  filter(V2 %in% c('Host-associated', 'Environmental'))
 
-genomes %>% 
-  ggplot(aes(x = "", y = count, fill = name)) +
+# Format data and compute top biomes
+biomes_cat <- biomes %>% 
+  group_by(V3) %>% 
+  summarise(samples = sum(samples_count)) %>% ungroup %>% 
+  mutate(sample_perc = samples/sum(samples), # percentage, then format names
+         biome_cat = case_when(V3 == 'Terrestrial' ~ 'Soil',
+                               V3 == 'Aquatic' ~ 'Water',
+                               V3 == 'Mammals' ~ 'Other mammals',
+                               is.na(V3) ~ 'Other biomes',
+                               sample_perc < 0.02 ~ 'Other biomes',
+                               TRUE ~ V3)) %>% 
+  group_by(biome_cat) %>% # summarise Others together
+  summarise(samples = sum(samples))
+
+# reorder factors for plot
+biome_rank <- c("Human", "Other mammals", "Water", "Plants", "Soil", "Birds", "Other biomes")
+
+biomes_cat %<>% mutate(biome_cat = factor(biome_cat, levels = biome_rank)) 
+
+### Plot biomes piechart
+biomes_cat %>% 
+  ggplot(aes(x = "", y = samples, fill = biome_cat)) +
   geom_bar(width = 1, stat = 'identity') +
   coord_polar("y", start = 0) +
-  theme_void(base_size = 28, 
-             base_family = 'Georgia') + 
+  theme_void(base_size = 34) + 
   theme(legend.position = 'right',
-        #   legend.spacing.y = unit(10, 'cm'),
-        legend.key.height = unit(1.4, 'cm')
-  ) +
-  labs(fill = 'MGnify Genome Catalogues') +
-  scale_fill_manual(values = MetBrewer::met.brewer('VanGogh2', n=11))
+        legend.key.height = unit(1.4, 'cm'),
+        legend.title = element_text(face = 'bold')) +
+  labs(fill = 'Biome') +
+  scale_fill_manual(values = c("#00a759", "#FFE081", "#388aff", "#D87A00","#FF5552", "#a183b3", "#469aac"))
 
 ggsave('figures/biomes.pdf',  bg = 'white', 
        width = 45, height = 20, units = 'cm')
