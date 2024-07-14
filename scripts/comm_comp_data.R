@@ -3,7 +3,6 @@ p_load(tidyverse, phyloseq, magrittr)
 
 # Sourmash output parsing function (custom)
 source(url('https://raw.githubusercontent.com/jorondo1/misc_scripts/main/community_functions.R'))
-source(url('https://raw.githubusercontent.com/jorondo1/misc_scripts/main/rarefy_even_depth2.R'))
 source("scripts/myFunctions.R")
 
 # Import environment arguments
@@ -35,15 +34,32 @@ cntmDiff <- cntm.df %>%
   pivot_wider(names_from = db, values_from = cntm) %>% 
   mutate(fold_inc_12 = !!sym(dbNames[2])/!!sym(dbNames[1]),
          diff_12 = !!sym(dbNames[2]) - !!sym(dbNames[1]),
+         perc_12 = 100*diff_12/!!sym(dbNames[1]),
          fold_inc_23 = !!sym(dbNames[3])/!!sym(dbNames[2]),
-         diff_23 = !!sym(dbNames[3]) - !!sym(dbNames[2]))
+         diff_23 = !!sym(dbNames[3]) - !!sym(dbNames[2]),
+         perc_23 = 100*diff_23/!!sym(dbNames[2]),
+         fold_inc_13 = !!sym(dbNames[3])/!!sym(dbNames[1]),
+         diff_13 = !!sym(dbNames[3]) - !!sym(dbNames[1]),
+         perc_13 = 100*diff_13/!!sym(dbNames[1]))
 
 message('Mean fold increase vs. default')
 cntmDiff %>% group_by(Dataset) %>% # Summarise increase :
   summarise(mean_inc_12 = mean(fold_inc_12),
             sd_inc_12 = sd(fold_inc_12),
             mean_inc_23 = mean(fold_inc_23),
-            sd_inc_23 = sd(fold_inc_23)) %>% as.data.frame %>% print
+            sd_inc_23 = sd(fold_inc_23),
+            mean_inc_13 = mean(fold_inc_13),
+            sd_inc_13 = sd(fold_inc_13)) %>% as.data.frame %>% print
+
+message('Mean % increase vs. default')
+cntmDiff %>% group_by(Dataset) %>% # Summarise increase :
+  summarise(mean_inc_12 = mean(perc_12),
+            sd_inc_12 = sd(perc_12),
+            mean_inc_23 = mean(perc_23),
+            sd_inc_23 = sd(perc_23),
+            mean_inc_13 = mean(perc_13),
+            sd_inc_13 = sd(perc_13)) %>% as.data.frame %>% print
+
 
 # Confidence interval in mean cntm increase
 # within which range do 90 % of sample increases fall with 95% confidence ?
@@ -144,6 +160,12 @@ message('Mean and variance of diversity across db:')
 div_long %>% group_by(Microbiome, db) %>% # Summarise diversity 
   summarise(meanDiv = mean(Shannon),
             varDiv = var(Shannon)) %>% as.data.frame %>% print
+
+# Sample-wise diversity change
+Boreal_moss_div %>% 
+  mutate(div_change = 100*(nMAGs - r214)/r214) %>% 
+  summarise(meanChange = mean(div_change),
+            sdChange = sd(div_change))
 
 # Linear regression Shannon - Host moss species
 lm_r214 <- div_long %>% 

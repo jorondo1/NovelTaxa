@@ -18,7 +18,6 @@ export SM_DB=${ANCHOR}${DB}/sourmash_db/gtdb-rs214-reps.k31.zip #atm hardcoded b
 export MAGs_IDX=${ANCHOR}${MAGs_IDX}
 export SM_SK=${ANCHOR}${SM_SK}
 export sourmash="singularity exec --writable-tmpfs -e -B ${ANCHOR}/home:${ANCHOR}/home ${ILAFORES}/programs/ILL_pipelines/containers/sourmash.4.7.0.sif sourmash"
-echo "$sourmash"
 echo "loading env"
 module load StdEnv/2020 apptainer/1.1.5
 

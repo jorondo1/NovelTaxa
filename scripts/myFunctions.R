@@ -7,10 +7,17 @@ read_label <- function(dir, columns) {
 }
 
 # Estimate diversity from abundance matrix, uses phyloseq object as intermediate
-div_wrapper <- function(abund.mx, meta.mx) {
-  phyloseq(otu_table(abund.mx,taxa_are_rows = TRUE),
-           sample_data(meta.mx)) %>% 
-    rarefy_even_depth2(verbose = FALSE) %>% 
+source(url('https://raw.githubusercontent.com/jorondo1/misc_scripts/main/community_functions.R'))
+source(url('https://raw.githubusercontent.com/jorondo1/misc_scripts/main/rarefy_even_depth2.R'))
+
+div_wrapper <- function(input, meta.mx = FALSE) {
+  if(is(input, "phyloseq")) {
+    ps <- input
+  } else {
+  ps <- phyloseq(otu_table(input,taxa_are_rows = TRUE),
+           sample_data(meta.mx)) 
+  }
+   ps %>% rarefy_even_depth2(verbose = FALSE) %>% 
     estimate_diversity(index = 'Shannon')
 }
 

@@ -1,6 +1,6 @@
 library(pacman)
 p_load(tidyverse, phyloseq, magrittr, foreach, iterators, parallel,
-       extrafont, showtext, patchwork, ggrepel)
+       extrafont, showtext, patchwork, ggrepel, ggh4x)
 
 source('scripts/comm_comp_data.R')
 custom_theme <- theme_light(base_size = 34)
@@ -13,14 +13,17 @@ p1 <- cntm.df %>% # Format db and dataset names
   mutate(Dataset = case_when(Dataset == "Boreal_mosses" ~ "Boreal mosses",
                              Dataset == "Saliva" ~ "Human saliva"),
          db = case_when(db == dbNames[1] ~ 'Default GTDB r214',
-                        db == dbNames[2] ~ 'with nMAGs',
-                        db == dbNames[3] ~ 'with nMAGs and better MAGs')) %>% 
+                        db == dbNames[2] ~ 'with novel MAGs',
+                        db == dbNames[3] ~ 'with novel MAGs and better MAGs')) %>% 
   # Plot !
   ggplot(aes(x = db, y = cntm)) +
   geom_violin(aes(fill=db)) + # so dots don't appear in the legend!
   #geom_jitter(alpha = 1, width=0.08, size = 1) + 
   custom_theme +
-  facet_wrap(~Dataset, scales= 'free', nrow=2) +
+  facet_wrap2(~Dataset, scales= 'free', nrow=2,
+              strip = strip_themed(
+                text_x = list(element_text(face = 'bold', colour = 'black', size = 24), 
+                              element_text(face = 'bold', colour = 'black', size = 24)))) +
   labs(y = 'Sample k-mer containment', x = '', fill = '') +
   scale_fill_manual(values = dbCols) 
 
@@ -29,7 +32,7 @@ div_long_formatted <- div_long %>% # Format db names
   filter(db != dbNames[3]) %>% # bMAGs were not relevant for mosses
   mutate(db = factor(db, levels = dbNames),
          db = case_when(db == dbNames[1] ~ 'Default GTDB r214',
-                        db == dbNames[2] ~ 'with nMAGs'),
+                        db == dbNames[2] ~ 'with novel MAGs'),
          Microbiome = case_when(
                         Microbiome == "Boreal_mosses" ~ "Boreal mosses",
                         Microbiome == "Saliva" ~ "Human saliva"))
@@ -41,7 +44,10 @@ p2 <- div_long_formatted %>%
   geom_boxplot(aes(fill = db)) +
   geom_point(alpha = 0.4, size=2) + geom_line(aes(group = Sample), alpha=0.3) + 
   custom_theme +
-  facet_wrap(~Microbiome, scales= 'free', nrow=2) +
+  facet_wrap2(~Microbiome, scales= 'free', nrow=2,
+              strip = strip_themed(
+                text_x = list(element_text(face = 'bold', colour = 'black', size = 24), 
+                              element_text(face = 'bold', colour = 'black', size = 24)))) +
   labs(y = 'Shannon diversity') +
   scale_fill_manual(values = dbCols[1:2]) +
   guides(fill = 'none') # remove legend altogether
@@ -56,18 +62,27 @@ p1 + theme(plot.margin = unit(c(0,45,0,0), "pt")) + p2 +
         legend.key.height = unit(1.2, 'cm'),
         legend.key.width = unit(1.2, 'cm'),
         axis.text.y = element_text(size = 18, colour = 'black'),
-        strip.background = element_rect(fill = "grey50"),
-        strip.text = element_text(face = 'bold')) 
+        strip.background = element_rect(fill = "#E6E6E6"),
+        strip.text = element_text(face = 'bold', colour = 'black')) 
 
 ggsave('figures/cntm_div.pdf',  bg = 'white', 
-       width = 40, height = 50, units = 'cm')
-
+       width = 40, height = 45, units = 'cm')
 # Plot diversity changes
+
 div_long_formatted %>% 
   filter(Microbiome=='Boreal mosses') %>% 
   ggplot(aes(x = db, y = Shannon, fill = Host)) +
-    geom_boxplot() + theme_light() +
-    facet_wrap(~db, scales = "free", nrow = 2) + 
+    geom_boxplot() +
+    facet_wrap2(vars(db), scales = "free", nrow = 2,
+                # Relabel facet titles 
+                labeller = labeller(db = c('Default GTDB r214' = 'Boreal mosses, default GTDB', 
+                                           'with novel MAGs' = 'Boreal mosses, adding novel MAGs')),
+                # Manually change the colours 
+                strip = strip_themed( #see https://rdrr.io/github/teunbrand/ggh4x/man/strip_themed.html
+                  background_x = list(element_rect(fill = "#D4FADD"), 
+                                      element_rect(fill = "#00A759")),
+                  text_x = list(element_text(face = 'bold', colour = 'black', size = 24), 
+                                element_text(face = 'bold', colour = 'white', size = 24)))) + 
     labs(y = 'Shannon diversity') +
     custom_theme +
     scale_fill_manual(values = c("#D87A00","#FF5552", "#FFE081", "#469aac"),
@@ -78,13 +93,11 @@ div_long_formatted %>%
           legend.margin = margin(b = -10, t=-15),
           axis.text.y = element_text(size = 18, colour = 'black'),
           axis.title.x = element_blank(),
-          legend.key.height = unit(1.2, 'cm'),
-          strip.background = element_rect(fill = "grey50"), # facet_wrap header
-          strip.text = element_text(face = 'bold')) +
+          legend.key.height = unit(1.2, 'cm')) +
     guides(fill = guide_legend(nrow = 2))
 
 ggsave('figures/div.pdf',  bg = 'white', 
-       width = 20, height = 50, units = 'cm')
+       width = 20, height = 45, units = 'cm')
 
 ###############################
 # BIOME REPRESENTATION PLOT ###
@@ -127,7 +140,7 @@ biomes_cat %>%
         legend.key.height = unit(1.4, 'cm'),
         legend.title = element_text(face = 'bold')) +
   labs(fill = 'Biome') +
-  scale_fill_manual(values = c("#00a759", "#FFE081", "#388aff", "#D87A00","#FF5552", "#a183b3", "#469aac"))
+  scale_fill_manual(values = c("#FFE081", "#D4FADD", "#469aac", "#00a759", "#D87A00","#FF5552", "#a183b3"))
 
 ggsave('figures/biomes.pdf',  bg = 'white', 
        width = 45, height = 20, units = 'cm')
