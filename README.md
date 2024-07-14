@@ -1,6 +1,6 @@
 This workflow quickly identifies MAGs representing species that have no representative genome in GTDB, referred to as novel species-level MAGs (nMAGs). It adds these MAGs to the reference database before estimating community composition for of set of metagenomes. Of note, this worflow does not provide taxonomic annotations of nMAGs, which can be achieved independently through GTDB-Tk.
 
-Looking for the [Poster presented at ISMB24](figures/ISMB24_poster_EN.pdf) ?
+Looking for the [Poster presented at ISMB24](figures/ISMB24.pdf) ?
 
 1. Quality assessment with `CheckM 2`
 2. Full pairwise comparisons with GTDB reference database with `skANI`
